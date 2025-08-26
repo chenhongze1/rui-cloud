@@ -21,6 +21,13 @@
         <module>rui-common-security</module>
         <module>rui-common-redis</module>
         <module>rui-common-mybatis</module>
+        <module>rui-common-lock</module>
+        <module>rui-common-ratelimit</module>
+        <module>rui-common-idempotent</module>
+        <module>rui-common-feign</module>
+        <module>rui-common-mq</module>
+        <module>rui-common-log</module>
+        <module>rui-common-mongo</module>
     </modules>
 
 </project>
