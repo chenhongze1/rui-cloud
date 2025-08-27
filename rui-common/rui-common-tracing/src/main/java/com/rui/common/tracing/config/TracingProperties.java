@@ -30,6 +30,11 @@ public class TracingProperties {
     private String serviceName = "rui-service";
 
     /**
+     * 服务版本
+     */
+    private String serviceVersion = "1.0.0";
+
+    /**
      * 采样配置
      */
     private SamplingConfig sampling = new SamplingConfig();
@@ -83,6 +88,13 @@ public class TracingProperties {
          * 父级采样决策
          */
         private boolean respectParentDecision = true;
+        
+        /**
+         * 获取采样率（兼容方法）
+         */
+        public double getRate() {
+            return ratio;
+        }
     }
 
     /**

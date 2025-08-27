@@ -1,6 +1,7 @@
 package com.rui.common.tracing.config;
 
 import com.rui.common.tracing.aspect.TracingAspect;
+import com.rui.common.tracing.context.TracingContext;
 import com.rui.common.tracing.interceptor.TracingInterceptor;
 import com.rui.common.tracing.manager.TracingManager;
 import io.opentelemetry.api.OpenTelemetry;
@@ -12,15 +13,12 @@ import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
-import io.opentelemetry.extension.trace.propagation.B3Propagator;
-import io.opentelemetry.extension.trace.propagation.JaegerPropagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -74,7 +72,7 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
      */
     @Bean
     public TracingManager tracingManager(OpenTelemetry openTelemetry) {
-        return new TracingManager(tracingProperties, openTelemetry);
+        return new TracingManager(openTelemetry, tracingProperties, new TracingContext());
     }
 
     /**
@@ -108,31 +106,21 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
      * 构建Resource
      */
     private Resource buildResource() {
-        Resource.Builder resourceBuilder = Resource.getDefault().toBuilder()
-                .put(ResourceAttributes.SERVICE_NAME, tracingProperties.getFullServiceName())
-                .put(ResourceAttributes.SERVICE_VERSION, tracingProperties.getResource().getServiceVersion())
-                .put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, tracingProperties.getResource().getEnvironment());
-
-        // 添加服务实例ID
-        if (tracingProperties.getResource().getServiceInstanceId() != null) {
-            resourceBuilder.put(ResourceAttributes.SERVICE_INSTANCE_ID, 
-                    tracingProperties.getResource().getServiceInstanceId());
-        }
-
-        // 添加自定义资源属性
-        tracingProperties.getResource().getAttributes().forEach(resourceBuilder::put);
-
-        // 添加自定义标签
-        tracingProperties.getTags().forEach(resourceBuilder::put);
-
-        return resourceBuilder.build();
+        return Resource.getDefault().toBuilder()
+                .put("service.name", tracingProperties.getFullServiceName())
+                .put("service.version", tracingProperties.getResource().getServiceVersion())
+                .put("deployment.environment", tracingProperties.getResource().getEnvironment())
+                .put("service.instance.id", 
+                    tracingProperties.getResource().getServiceInstanceId() != null ? 
+                    tracingProperties.getResource().getServiceInstanceId() : "unknown")
+                .build();
     }
 
     /**
      * 构建TracerProvider
      */
     private SdkTracerProvider buildTracerProvider(Resource resource) {
-        SdkTracerProvider.Builder tracerProviderBuilder = SdkTracerProvider.builder()
+        var tracerProviderBuilder = SdkTracerProvider.builder()
                 .setResource(resource)
                 .setSampler(buildSampler());
 
@@ -141,11 +129,9 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
         if (spanExporter != null) {
             BatchSpanProcessor batchProcessor = BatchSpanProcessor.builder(spanExporter)
                     .setMaxExportBatchSize(tracingProperties.getBatch().getMaxExportBatchSize())
-                    .setExportTimeout(Duration.ofMillis(tracingProperties.getBatch().getExportTimeout()))
                     .setScheduleDelay(Duration.ofMillis(tracingProperties.getBatch().getScheduleDelay()))
                     .setMaxQueueSize(tracingProperties.getBatch().getMaxQueueSize())
                     .build();
-            
             tracerProviderBuilder.addSpanProcessor(batchProcessor);
         }
 
@@ -160,12 +146,12 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
         
         switch (sampling.getType().toLowerCase()) {
             case "always_on":
-                return Sampler.create(1.0);
+                return Sampler.alwaysOn();
             case "always_off":
-                return Sampler.create(0.0);
+                return Sampler.alwaysOff();
             case "trace_id_ratio":
             default:
-                return Sampler.create(tracingProperties.getEffectiveSamplingRatio());
+                return Sampler.traceIdRatioBased(tracingProperties.getEffectiveSamplingRatio());
         }
     }
 
@@ -192,13 +178,10 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
      * 构建Jaeger导出器
      */
     private SpanExporter buildJaegerExporter(TracingProperties.ExportConfig export) {
-        JaegerGrpcSpanExporter.Builder builder = JaegerGrpcSpanExporter.builder()
+        return JaegerGrpcSpanExporter.builder()
                 .setEndpoint(export.getJaeger().getEndpoint())
-                .setTimeout(export.getJaeger().getTimeout(), TimeUnit.MILLISECONDS);
-
-        export.getHeaders().forEach(builder::addHeader);
-        
-        return builder.build();
+                .setTimeout(Duration.ofMillis(export.getJaeger().getTimeout()))
+                .build();
     }
 
     /**
@@ -214,13 +197,10 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
      * 构建OTLP导出器
      */
     private SpanExporter buildOtlpExporter(TracingProperties.ExportConfig export) {
-        OtlpGrpcSpanExporter.Builder builder = OtlpGrpcSpanExporter.builder()
+        return OtlpGrpcSpanExporter.builder()
                 .setEndpoint(export.getOtlp().getEndpoint())
-                .setTimeout(Duration.ofMillis(export.getOtlp().getTimeout()));
-
-        export.getOtlp().getHeaders().forEach(builder::addHeader);
-        
-        return builder.build();
+                .setTimeout(Duration.ofMillis(export.getOtlp().getTimeout()))
+                .build();
     }
 
     /**
@@ -235,18 +215,19 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
                     propagators.add(W3CTraceContextPropagator.getInstance());
                     break;
                 case "b3":
-                    if (tracingProperties.getPropagation().getB3().isSingleHeader()) {
-                        propagators.add(B3Propagator.injectingSingleHeader());
-                    } else {
-                        propagators.add(B3Propagator.injectingMultiHeaders());
-                    }
-                    break;
                 case "jaeger":
-                    propagators.add(JaegerPropagator.getInstance());
+                    log.warn("Propagator type {} is not available, using W3C TraceContext instead", type);
+                    propagators.add(W3CTraceContextPropagator.getInstance());
                     break;
                 default:
-                    log.warn("Unknown propagator type: {}", type);
+                    log.warn("Unknown propagator type: {}, using W3C TraceContext", type);
+                    propagators.add(W3CTraceContextPropagator.getInstance());
             }
+        }
+        
+        // 如果没有配置任何propagator，使用默认的W3C TraceContext
+        if (propagators.isEmpty()) {
+            propagators.add(W3CTraceContextPropagator.getInstance());
         }
         
         return ContextPropagators.create(

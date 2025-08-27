@@ -1,5 +1,7 @@
 package com.rui.common.config;
 
+import com.rui.common.config.ConfigValidator.ValidationResult;
+import com.rui.common.config.properties.ConfigProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -48,6 +50,9 @@ public class DynamicConfigUpdater {
     @Autowired(required = false)
     private ConfigValidator configValidator;
     
+    @Autowired
+    private ConfigProperties configProperties;
+    
     /**
      * 动态配置存储
      */
@@ -87,8 +92,15 @@ public class DynamicConfigUpdater {
     public void init() {
         log.info("Initializing DynamicConfigUpdater...");
         
+        // 检查动态配置是否启用
+        if (!configProperties.getDynamic().isEnabled()) {
+            log.info("Dynamic configuration is disabled");
+            return;
+        }
+        
         // 初始化线程池
-        scheduler = Executors.newScheduledThreadPool(2, r -> {
+        int threadPoolSize = getThreadPoolSize();
+        scheduler = Executors.newScheduledThreadPool(threadPoolSize, r -> {
             Thread thread = new Thread(r, "dynamic-config-updater");
             thread.setDaemon(true);
             return thread;
@@ -97,7 +109,12 @@ public class DynamicConfigUpdater {
         // 添加动态配置源
         addDynamicPropertySource();
         
-        log.info("DynamicConfigUpdater initialized successfully");
+        // 启动定时刷新任务
+        if (configProperties.getDynamic().getRefreshInterval() > 0) {
+            scheduleRefresh("*", configProperties.getDynamic().getRefreshInterval());
+        }
+        
+        log.info("DynamicConfigUpdater initialized successfully with thread pool size: {}", threadPoolSize);
     }
 
     @PreDestroy
@@ -288,11 +305,24 @@ public class DynamicConfigUpdater {
      */
     private boolean validatePropertyValue(String key, Object value) {
         try {
+            // 检查是否启用验证
+            if (!configProperties.getValidation().isEnabled()) {
+                return true;
+            }
+            
             if (configValidator != null) {
-                return configValidator.validateProperty(key, value);
+                ValidationResult result = configValidator.validateProperty(key, value);
+                return result.isValid();
             } else {
                 // 基本验证
                 if (key == null || key.trim().isEmpty()) {
+                    return false;
+                }
+                
+                // 检查是否在允许的配置键列表中
+                List<String> allowedKeys = getAllowedKeys();
+                if (!allowedKeys.isEmpty() && !allowedKeys.contains(key)) {
+                    log.warn("Property key not in allowed list: {}", key);
                     return false;
                 }
                 
@@ -319,7 +349,8 @@ public class DynamicConfigUpdater {
         updateHistory.add(record);
         
         // 保持历史记录数量在合理范围内
-        if (updateHistory.size() > 1000) {
+        int maxHistorySize = getHistory();
+        if (updateHistory.size() > maxHistorySize) {
             updateHistory.remove(0);
         }
     }
@@ -439,6 +470,27 @@ public class DynamicConfigUpdater {
             return history;
         }
         return history.subList(history.size() - limit, history.size());
+    }
+
+    /**
+     * 获取线程池大小
+     */
+    private int getThreadPoolSize() {
+        return configProperties.getDynamic().getThreadPoolSize();
+    }
+
+    /**
+     * 获取允许的配置键列表
+     */
+    private List<String> getAllowedKeys() {
+        return configProperties.getValidation().getAllowedKeys();
+    }
+
+    /**
+     * 获取历史记录最大数量
+     */
+    private int getHistory() {
+        return configProperties.getHistory().getMaxSize();
     }
 
     /**

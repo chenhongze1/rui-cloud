@@ -1,0 +1,103 @@
+# RUI Config Management Default Configuration
+rui:
+  config:
+    # 是否启用配置管理
+    enabled: true
+    
+    # 配置加密
+    encryption:
+      # 是否启用配置加密
+      enabled: false
+      # 加密算法
+      algorithm: AES
+      # 密钥
+      secret-key: ${RUI_CONFIG_SECRET_KEY:rui-config-default-key}
+    
+    # 动态配置
+    dynamic:
+      # 是否启用动态配置
+      enabled: true
+      # 配置刷新间隔（秒）
+      refresh-interval: 30
+      # 配置来源
+      source: NACOS
+    
+    # 配置验证
+    validation:
+      # 是否启用配置验证
+      enabled: true
+      # 验证模式：STRICT（严格）、LENIENT（宽松）
+      mode: STRICT
+      # 是否在启动时验证
+      validate-on-startup: true
+    
+    # 配置监控
+    monitoring:
+      # 是否启用配置监控
+      enabled: true
+      # 监控指标收集间隔（秒）
+      metrics-interval: 60
+      # 是否记录配置变更日志
+      log-changes: true
+    
+    # Nacos配置（当source为NACOS时）
+    nacos:
+      # 服务器地址
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      # 命名空间
+      namespace: ${NACOS_NAMESPACE:}
+      # 用户名
+      username: ${NACOS_USERNAME:nacos}
+      # 密码
+      password: ${NACOS_PASSWORD:nacos}
+      # 配置组
+      group: ${NACOS_GROUP:DEFAULT_GROUP}
+      # 配置数据ID
+      data-id: ${NACOS_DATA_ID:application.yml}
+      # 配置格式
+      type: yaml
+      # 是否自动刷新
+      auto-refresh: true
+      # 刷新间隔（毫秒）
+      refresh-interval: 30000
+    
+    # Apollo配置（当source为APOLLO时）
+    apollo:
+      # 应用ID
+      app-id: ${APOLLO_APP_ID:rui-framework}
+      # Meta服务器地址
+      meta: ${APOLLO_META:http://localhost:8080}
+      # 集群名称
+      cluster: ${APOLLO_CLUSTER:default}
+      # 命名空间
+      namespaces: ${APOLLO_NAMESPACES:application}
+      # 是否启用自动更新
+      auto-update-injected-spring-properties: true
+    
+    # 配置缓存
+    cache:
+      # 是否启用配置缓存
+      enabled: true
+      # 缓存类型：MEMORY、REDIS
+      type: MEMORY
+      # 缓存过期时间（秒）
+      expire-time: 3600
+      # 最大缓存条目数
+      max-size: 1000
+    
+    # 配置备份
+    backup:
+      # 是否启用配置备份
+      enabled: false
+      # 备份目录
+      directory: ${user.home}/.rui/config/backup
+      # 备份保留天数
+      retention-days: 30
+      # 备份间隔（小时）
+      interval-hours: 24
+
+# 日志配置
+logging:
+  level:
+    com.rui.common.config: INFO
+    root: WARN

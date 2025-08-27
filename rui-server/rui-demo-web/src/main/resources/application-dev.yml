@@ -1,0 +1,113 @@
+# 开发环境配置
+spring:
+  # 数据源配置 - 使用H2内存数据库便于测试
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:rui_demo;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+  
+  # H2控制台配置
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  # Redis配置 - 开发环境可选
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+      timeout: 5s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 4
+          max-active: 8
+          max-wait: -1ms
+
+# 日志配置
+logging:
+  level:
+    com.rui: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: INFO
+
+# RUI框架配置 - 开发环境简化配置
+rui:
+  # Redis配置 - 开发环境可选，如果Redis不可用会自动降级
+  redis:
+    enabled: false
+  
+  # 分布式锁配置 - 开发环境使用本地锁
+  lock:
+    enabled: true
+    type: local
+  
+  # 多租户配置 - 开发环境关闭
+  tenant:
+    enabled: false
+  
+  # 限流配置 - 开发环境使用内存限流
+  rate-limit:
+    enabled: true
+    type: memory
+  
+  # 监控配置 - 开发环境简化
+  monitoring:
+    enabled: true
+    metrics:
+      enabled: true
+      jvm: true
+      system: true
+      http: true
+      database: false
+      redis: false
+      business: true
+    health:
+      enabled: true
+      database: true
+      redis: false
+      disk-space: true
+    performance:
+      enabled: true
+      method-monitoring: false
+      slow-detection: true
+      resource-monitoring: false
+    alert:
+      enabled: false
+  
+  # 链路追踪配置 - 开发环境关闭
+  tracing:
+    enabled: false
+  
+  # 配置管理
+  config:
+    enabled: true
+    dynamic-refresh: false
+    encryption:
+      enabled: false
+
+# Redisson配置 - 开发环境关闭
+redisson:
+  config: null

@@ -9,6 +9,8 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -156,7 +158,11 @@ public class TracingManager {
      */
     public <T> T executeInSpan(Span span, SpanOperation<T> operation) {
         if (span == null) {
-            return operation.execute();
+            try {
+                return operation.execute();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         
         try (Scope scope = span.makeCurrent()) {
@@ -165,12 +171,12 @@ public class TracingManager {
             
             try {
                 return operation.execute();
+            } catch (Exception e) {
+                span.recordException(e);
+                throw new RuntimeException(e);
             } finally {
                 tracingContext.setCurrentSpan(previousSpan);
             }
-        } catch (Exception e) {
-            span.recordException(e);
-            throw e;
         }
     }
 
@@ -395,13 +401,38 @@ public class TracingManager {
         return Context.current();
     }
 
+    // TextMapSetter实现
+    private static final TextMapSetter<Map<String, String>> TEXT_MAP_SETTER = 
+            new TextMapSetter<Map<String, String>>() {
+                @Override
+                public void set(Map<String, String> carrier, String key, String value) {
+                    if (carrier != null) {
+                        carrier.put(key, value);
+                    }
+                }
+            };
+    
+    // TextMapGetter实现
+    private static final TextMapGetter<Map<String, String>> TEXT_MAP_GETTER = 
+            new TextMapGetter<Map<String, String>>() {
+                @Override
+                public Iterable<String> keys(Map<String, String> carrier) {
+                    return carrier.keySet();
+                }
+                
+                @Override
+                public String get(Map<String, String> carrier, String key) {
+                    return carrier.get(key);
+                }
+            };
+
     /**
-     * 传播上下文
+     * 传播上下文到头部
      */
     public void propagateContext(Map<String, String> headers) {
         Context context = getCurrentContext();
         openTelemetry.getPropagators().getTextMapPropagator()
-                .inject(context, headers, (carrier, key, value) -> carrier.put(key, value));
+                .inject(context, headers, TEXT_MAP_SETTER);
     }
 
     /**
@@ -409,6 +440,6 @@ public class TracingManager {
      */
     public Context extractContext(Map<String, String> headers) {
         return openTelemetry.getPropagators().getTextMapPropagator()
-                .extract(Context.current(), headers, (carrier, key) -> carrier.get(key));
+                .extract(Context.current(), headers, TEXT_MAP_GETTER);
     }
 }

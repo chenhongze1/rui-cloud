@@ -15,7 +15,20 @@
     
     <name>rui-common-tracing</name>
     <description>分布式链路追踪模块</description>
-    
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- OpenTelemetry BOM -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>1.32.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- Spring Boot Starter -->
         <dependency>
@@ -35,14 +48,7 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         
-        <!-- OpenTelemetry BOM -->
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-bom</artifactId>
-            <version>1.32.0</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
+
         
         <!-- OpenTelemetry API -->
         <dependency>
@@ -84,12 +90,6 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-logging</artifactId>
-        </dependency>
-        
-        <!-- OpenTelemetry Semantic Conventions -->
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-semconv</artifactId>
         </dependency>
         
         <!-- Spring Boot Actuator -->

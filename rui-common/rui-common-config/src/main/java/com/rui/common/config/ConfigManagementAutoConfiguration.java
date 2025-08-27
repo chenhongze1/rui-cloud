@@ -1,5 +1,7 @@
 package com.rui.common.config;
 
+import com.rui.common.config.encryption.ConfigEncryption;
+import com.rui.common.config.properties.ConfigProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
@@ -12,7 +14,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.Validator;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashMap;
@@ -28,7 +37,7 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties
+@EnableConfigurationProperties(ConfigProperties.class)
 @ConditionalOnProperty(prefix = "rui.config", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ConfigManagementAutoConfiguration {
 
@@ -58,6 +67,17 @@ public class ConfigManagementAutoConfiguration {
     @ConditionalOnProperty(prefix = "rui.config.dynamic", name = "enabled", havingValue = "true", matchIfMissing = true)
     public DynamicConfigUpdater dynamicConfigUpdater() {
         return new DynamicConfigUpdater();
+    }
+
+    /**
+     * 配置加密器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "rui.config.encryption", name = "enabled", havingValue = "true")
+    public ConfigEncryption configEncryption(ConfigProperties configProperties) {
+        ConfigProperties.EncryptionProperties encryption = configProperties.getEncryption();
+        return new ConfigEncryption(encryption.getAlgorithm(), "AES/ECB/PKCS5Padding", encryption.getSecretKey());
     }
 
     /**
@@ -131,7 +151,7 @@ public class ConfigManagementAutoConfiguration {
             Map<String, Object> result = new HashMap<>();
             
             if (configManager != null && configValidator != null) {
-                Map<String, ConfigManager.ValidationResult> validationResults = configManager.validateAllConfigurations();
+                Map<String, ConfigManager.ValidationResult> validationResults = configManager.validateAllConfigurationsAsMap();
                 result.put("validationResults", validationResults);
                 
                 long validCount = validationResults.values().stream()
@@ -244,7 +264,13 @@ public class ConfigManagementAutoConfiguration {
             
             try {
                 if (configManager != null && configValidator != null) {
-                    ConfigManager.ValidationResult validationResult = configManager.validateConfiguration(prefix);
+                    boolean isValid = configManager.validateConfiguration(prefix);
+                    ConfigManager.ValidationResult validationResult = new ConfigManager.ValidationResult();
+                    if (isValid) {
+                        validationResult.addSuccess(prefix);
+                    } else {
+                        validationResult.addError(prefix, "Validation failed");
+                    }
                     result.put("success", true);
                     result.put("data", validationResult);
                 } else {
@@ -465,20 +491,17 @@ public class ConfigManagementAutoConfiguration {
                 org.springframework.boot.actuate.health.Health.Builder builder = 
                     org.springframework.boot.actuate.health.Health.up();
                 
-                if (configManager != null) {
-                    Map<String, ConfigManager.ValidationResult> validationResults = 
-                        configManager.validateAllConfigurations();
+                if (configManager != null && configValidator != null) {
+                    ConfigManager.ValidationResult validationResult = 
+                        configManager.validateAllConfigurations();                    
+                    boolean hasErrors = validationResult.hasErrors();
                     
-                    long invalidCount = validationResults.values().stream()
-                        .filter(result -> !result.isValid())
-                        .count();
-                    
-                    if (invalidCount > 0) {
-                        builder.down().withDetail("invalidConfigurations", invalidCount);
+                    if (hasErrors) {
+                        builder.down().withDetail("invalidConfigurations", validationResult.getErrorCount());
                     }
                     
-                    builder.withDetail("totalConfigurations", validationResults.size());
-                    builder.withDetail("validConfigurations", validationResults.size() - invalidCount);
+                    builder.withDetail("totalConfigurations", validationResult.getSuccessCount() + validationResult.getErrorCount());
+                    builder.withDetail("validConfigurations", validationResult.getSuccessCount());
                 }
                 
                 return builder.build();

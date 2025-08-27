@@ -1,6 +1,7 @@
 package com.rui.common.tracing.context;
 
 import com.rui.common.tracing.model.TraceInfo;
+import io.opentelemetry.api.trace.Span;
 
 /**
  * 链路追踪上下文
@@ -12,6 +13,7 @@ import com.rui.common.tracing.model.TraceInfo;
 public class TracingContext {
     
     private static final ThreadLocal<TraceInfo> TRACE_CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<Span> CURRENT_SPAN = new ThreadLocal<>();
     
     /**
      * 设置当前追踪信息
@@ -44,10 +46,32 @@ public class TracingContext {
     }
     
     /**
+     * 设置当前Span
+     */
+    public static void setCurrentSpan(Span span) {
+        CURRENT_SPAN.set(span);
+    }
+    
+    /**
+     * 获取当前Span
+     */
+    public static Span getCurrentSpan() {
+        return CURRENT_SPAN.get();
+    }
+    
+    /**
+     * 清理当前Span
+     */
+    public static void clearCurrentSpan() {
+        CURRENT_SPAN.remove();
+    }
+    
+    /**
      * 清理当前线程的追踪信息
      */
     public static void clear() {
         TRACE_CONTEXT.remove();
+        CURRENT_SPAN.remove();
     }
     
     /**

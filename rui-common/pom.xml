@@ -17,6 +17,7 @@
 
     <modules>
         <module>rui-common-core</module>
+        <module>rui-common-utils</module>
         <module>rui-common-web</module>
         <module>rui-common-security</module>
         <module>rui-common-redis</module>

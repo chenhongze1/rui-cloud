@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import com.rui.common.config.properties.ConfigProperties;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.ConstraintViolation;
@@ -34,6 +35,9 @@ public class ConfigValidator {
     
     @Autowired(required = false)
     private Validator validator;
+    
+    @Autowired
+    private ConfigProperties configProperties;
     
     /**
      * 自定义验证规则
@@ -84,6 +88,11 @@ public class ConfigValidator {
     public ValidationResult validateConfiguration(Object config) {
         if (config == null) {
             return ValidationResult.error("Configuration object is null");
+        }
+        
+        // 检查验证是否启用
+        if (!configProperties.getValidation().isEnabled()) {
+            return ValidationResult.success();
         }
         
         String configKey = config.getClass().getSimpleName();
@@ -409,6 +418,54 @@ public class ConfigValidator {
      */
     public void clearValidationCache() {
         validationCache.clear();
+    }
+
+    /**
+     * 验证单个属性
+     */
+    public ValidationResult validateProperty(String key, Object value) {
+        // 检查验证是否启用
+        if (!configProperties.getValidation().isEnabled()) {
+            return ValidationResult.success();
+        }
+        
+        try {
+            List<String> errors = new ArrayList<>();
+            List<String> warnings = new ArrayList<>();
+            
+            // 基本验证
+            if (value == null) {
+                warnings.add("Property '" + key + "' is null");
+            } else if (value instanceof String && !StringUtils.hasText((String) value)) {
+                warnings.add("Property '" + key + "' is empty");
+            }
+            
+            // 根据key的类型进行特定验证
+            if (key.contains("port") && value instanceof Number) {
+                int port = ((Number) value).intValue();
+                if (port < 1 || port > 65535) {
+                    errors.add("Port value must be between 1 and 65535");
+                }
+            }
+            
+            if (key.contains("url") && value instanceof String) {
+                String url = (String) value;
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    warnings.add("URL should start with http:// or https://");
+                }
+            }
+            
+            if (errors.isEmpty()) {
+                return warnings.isEmpty() ? 
+                    ValidationResult.success() : 
+                    ValidationResult.warning("Property validation completed with warnings", warnings);
+            } else {
+                return ValidationResult.error("Property validation failed", errors, warnings);
+            }
+        } catch (Exception e) {
+            log.error("Error validating property: {} = {}", key, value, e);
+            return ValidationResult.error("Validation error: " + e.getMessage());
+        }
     }
 
     /**

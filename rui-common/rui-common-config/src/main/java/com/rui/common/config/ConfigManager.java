@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.ConstraintViolation;
@@ -28,6 +29,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Slf4j
 @Component
 @RefreshScope
+@EnableConfigurationProperties
 public class ConfigManager {
     
     @Autowired
@@ -41,6 +43,11 @@ public class ConfigManager {
     
     @Autowired(required = false)
     private Validator validator;
+    
+    /**
+     * 配置属性映射
+     */
+    private final Map<String, ConfigurationProperties> configPropertiesMap = new ConcurrentHashMap<>();
     
     /**
      * 配置缓存
@@ -378,6 +385,82 @@ public class ConfigManager {
     }
 
     /**
+     * 根据前缀获取配置
+     */
+    public Map<String, Object> getConfigByPrefix(String prefix) {
+        Map<String, Object> result = new HashMap<>();
+        lock.readLock().lock();
+        try {
+            for (Map.Entry<String, Object> entry : configCache.entrySet()) {
+                if (entry.getKey().startsWith(prefix)) {
+                    result.put(entry.getKey(), entry.getValue());
+                }
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+        return result;
+    }
+
+    /**
+     * 验证所有配置
+     */
+    public ValidationResult validateAllConfigurations() {
+        ValidationResult result = new ValidationResult();
+        lock.readLock().lock();
+        try {
+            for (String prefix : configMetadata.keySet()) {
+                boolean isValid = validateConfiguration(prefix);
+                if (isValid) {
+                    result.addSuccess(prefix);
+                } else {
+                    result.addError(prefix, "Validation failed");
+                }
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+        return result;
+    }
+
+    /**
+     * 验证所有配置并返回Map格式的结果
+     */
+    public Map<String, ValidationResult> validateAllConfigurationsAsMap() {
+        Map<String, ValidationResult> results = new HashMap<>();
+        lock.readLock().lock();
+        try {
+            for (String prefix : configMetadata.keySet()) {
+                ValidationResult result = new ValidationResult();
+                boolean isValid = validateConfiguration(prefix);
+                if (isValid) {
+                    result.addSuccess(prefix);
+                } else {
+                    result.addError(prefix, "Validation failed");
+                }
+                results.put(prefix, result);
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+        return results;
+    }
+
+    /**
+     * 获取配置摘要信息
+     */
+    public Map<String, Object> getConfigSummary() {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalConfigurations", configCache.size());
+        summary.put("activeProfiles", Arrays.asList(getActiveProfiles()));
+        summary.put("defaultProfiles", Arrays.asList(getDefaultProfiles()));
+        summary.put("configPrefixes", getAllConfigPrefixes());
+        summary.put("cachedProperties", configCache.size());
+        summary.put("listeners", listeners.size());
+        return summary;
+    }
+
+    /**
      * 配置变更监听器接口
      */
     public interface ConfigChangeListener {
@@ -456,6 +539,46 @@ public class ConfigManager {
 
         public void setValidated(boolean validated) {
             this.validated = validated;
+        }
+    }
+
+    /**
+     * 验证结果
+     */
+    public static class ValidationResult {
+        private final List<String> successList = new ArrayList<>();
+        private final Map<String, String> errorMap = new HashMap<>();
+
+        public void addSuccess(String prefix) {
+            successList.add(prefix);
+        }
+
+        public void addError(String prefix, String error) {
+            errorMap.put(prefix, error);
+        }
+
+        public List<String> getSuccessList() {
+            return new ArrayList<>(successList);
+        }
+
+        public Map<String, String> getErrorMap() {
+            return new HashMap<>(errorMap);
+        }
+
+        public boolean hasErrors() {
+            return !errorMap.isEmpty();
+        }
+
+        public boolean isValid() {
+            return !hasErrors();
+        }
+
+        public int getSuccessCount() {
+            return successList.size();
+        }
+
+        public int getErrorCount() {
+            return errorMap.size();
         }
     }
 }

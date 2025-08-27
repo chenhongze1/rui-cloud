@@ -140,7 +140,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
      * 记录请求开始日志
      */
     private void logRequestStart(HttpServletRequest request) {
-        if (!loggingConfig.getLevel().getHttp().equals("DEBUG")) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -231,7 +231,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
             log.error("HTTP_REQUEST_ERROR: {}", responseData);
         } else if (response.getStatus() >= 400) {
             log.warn("HTTP_REQUEST_CLIENT_ERROR: {}", responseData);
-        } else if (duration > loggingConfig.getPerformance().getSlowApiThreshold()) {
+        } else if (duration > logProperties.getLogging().getSlowLogThreshold()) {
             log.warn("HTTP_REQUEST_SLOW: {}", responseData);
         } else {
             log.info("HTTP_REQUEST_COMPLETED: {}", responseData);

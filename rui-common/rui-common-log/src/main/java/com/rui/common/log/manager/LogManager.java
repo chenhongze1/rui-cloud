@@ -95,9 +95,9 @@ public class LogManager {
         // 判断是否为慢操作
         boolean isSlow = false;
         if (operation.contains("sql") || operation.contains("query")) {
-            isSlow = duration > loggingConfig.getPerformance().getSlowQueryThreshold();
+            isSlow = duration > logProperties.getLogging().getSlowLogThreshold();
         } else if (operation.contains("api") || operation.contains("http")) {
-            isSlow = duration > loggingConfig.getPerformance().getSlowApiThreshold();
+            isSlow = duration > logProperties.getLogging().getSlowLogThreshold();
         }
         
         if (isSlow) {
@@ -240,16 +240,16 @@ public class LogManager {
      * 格式化结构化日志
      */
     private String formatStructuredLog(Map<String, Object> data) {
-        if (!loggingConfig.getStructured().isEnabled()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return data.toString();
         }
         
         try {
             // 添加自定义字段
             Map<String, Object> logData = new HashMap<>(data);
-            logData.putAll(loggingConfig.getStructured().getCustomFields());
-            logData.put("application", loggingConfig.getApplicationName());
-            logData.put("environment", loggingConfig.getEnvironment());
+            logData.putAll(logProperties.getElk().getCustomFields());
+            logData.put("application", logProperties.getElk().getApplicationName());
+            logData.put("environment", logProperties.getElk().getEnvironment());
             
             return objectMapper.writeValueAsString(logData);
         } catch (JsonProcessingException e) {
@@ -298,7 +298,7 @@ public class LogManager {
         
         if (status >= 400) {
             log.warn("HTTP_ERROR: " + formatStructuredLog(httpData));
-        } else if (duration > loggingConfig.getPerformance().getSlowApiThreshold()) {
+        } else if (duration > logProperties.getLogging().getSlowLogThreshold()) {
             log.warn("SLOW_HTTP: " + formatStructuredLog(httpData));
         } else {
             log.info("HTTP_REQUEST: " + formatStructuredLog(httpData));
@@ -309,7 +309,7 @@ public class LogManager {
      * 记录SQL执行日志
      */
     public void sqlExecution(String sql, long duration, int rowCount, boolean isSuccess) {
-        if (!loggingConfig.getPerformance().isLogSqlTime()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -321,7 +321,7 @@ public class LogManager {
         
         if (!isSuccess) {
             log.error("SQL_ERROR: " + formatStructuredLog(sqlData));
-        } else if (duration > loggingConfig.getPerformance().getSlowQueryThreshold()) {
+        } else if (duration > logProperties.getLogging().getSlowLogThreshold()) {
             log.warn("SLOW_SQL: " + formatStructuredLog(sqlData));
         } else {
             log.debug("SQL_EXECUTION: " + formatStructuredLog(sqlData));

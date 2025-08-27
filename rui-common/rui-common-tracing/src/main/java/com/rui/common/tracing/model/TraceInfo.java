@@ -400,4 +400,41 @@ public class TraceInfo {
     public String getDetailedInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append("TraceInfo{\n");
-        sb.append("  traceId='
+        sb.append("  traceId='" + traceId + "'\n");
+        sb.append("  spanId='" + spanId + "'\n");
+        sb.append("  operationName='" + operationName + "'\n");
+        sb.append("  serviceName='" + serviceName + "'\n");
+        sb.append("  duration=" + duration + "\n");
+        sb.append("  status=" + status + "\n");
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    /**
+     * 设置异常信息
+     * @param exception 异常对象
+     */
+    public void setException(Throwable exception) {
+        if (exception != null) {
+            this.errorMessage = exception.getMessage();
+            this.stackTrace = getStackTrace(exception);
+            this.status = TraceStatus.ERROR;
+        }
+    }
+
+    /**
+     * 获取异常堆栈信息
+     * @param exception 异常对象
+     * @return 堆栈信息字符串
+     */
+    private String getStackTrace(Throwable exception) {
+        if (exception == null) {
+            return null;
+        }
+        
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        exception.printStackTrace(pw);
+        return sw.toString();
+    }
+}
