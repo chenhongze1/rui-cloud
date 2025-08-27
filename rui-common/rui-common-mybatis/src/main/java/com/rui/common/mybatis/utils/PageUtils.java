@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.rui.common.core.domain.PageResult;
 import com.rui.common.core.page.PageQuery;
 import com.rui.common.core.page.TableDataInfo;
 import cn.hutool.core.util.StrUtil;
@@ -42,11 +43,19 @@ public class PageUtils {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static TableDataInfo getDataTable(List<?> list) {
         TableDataInfo rspData = new TableDataInfo();
-        rspData.setCode(200);
-        rspData.setMsg("查询成功");
         rspData.setRows(list);
         rspData.setTotal(new PageInfo(list).getTotal());
         return rspData;
+    }
+
+    /**
+     * 响应请求分页数据（返回PageResult）
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static <T> PageResult<T> getPageResult(List<T> list) {
+        PageInfo<T> pageInfo = new PageInfo<>(list);
+        return PageResult.of(list, pageInfo.getTotal(), 
+                           pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     /**
@@ -54,11 +63,24 @@ public class PageUtils {
      */
     public static <T> TableDataInfo<T> getDataTable(IPage<T> page) {
         TableDataInfo<T> rspData = new TableDataInfo<>();
-        rspData.setCode(200);
-        rspData.setMsg("查询成功");
         rspData.setRows(page.getRecords());
         rspData.setTotal(page.getTotal());
         return rspData;
+    }
+
+    /**
+     * MyBatis Plus分页对象转换为PageResult
+     */
+    public static <T> PageResult<T> getPageResult(IPage<T> page) {
+        return PageResult.of(page.getRecords(), page.getTotal(),
+                           (int) page.getCurrent(), (int) page.getSize());
+    }
+
+    /**
+     * PageResult转换为TableDataInfo
+     */
+    public static <T> TableDataInfo<T> toTableDataInfo(PageResult<T> pageResult) {
+        return TableDataInfo.build(pageResult);
     }
 
     /**

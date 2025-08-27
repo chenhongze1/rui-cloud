@@ -1,6 +1,7 @@
 package com.rui.common.web.controller;
 
 import com.rui.common.core.domain.R;
+import com.rui.common.core.domain.PageResult;
 import com.rui.common.core.page.PageQuery;
 import com.rui.common.core.page.TableDataInfo;
 import com.github.pagehelper.PageHelper;
@@ -74,11 +75,32 @@ public class BaseController {
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected <T> TableDataInfo<T> getDataTable(List<T> list) {
         TableDataInfo<T> rspData = new TableDataInfo<>();
-        rspData.setCode(200);
-        rspData.setMsg("查询成功");
         rspData.setRows(list);
         rspData.setTotal(new PageInfo(list).getTotal());
         return rspData;
+    }
+
+    /**
+     * 基于PageResult构建TableDataInfo
+     *
+     * @param pageResult 分页结果
+     * @return 分页数据对象
+     */
+    protected <T> TableDataInfo<T> getDataTable(PageResult<T> pageResult) {
+        return TableDataInfo.build(pageResult);
+    }
+
+    /**
+     * 构建PageResult对象
+     *
+     * @param list 数据列表
+     * @param total 总记录数
+     * @param current 当前页码
+     * @param size 每页大小
+     * @return PageResult对象
+     */
+    protected <T> PageResult<T> getPageResult(List<T> list, long total, int current, int size) {
+        return PageResult.of(list, total, current, size);
     }
 
     /**
