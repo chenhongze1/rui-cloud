@@ -46,7 +46,7 @@ public class JwtUtils {
             
             // 先尝试使用当前密钥解析
             try {
-                claims = Jwts.parserBuilder()
+                claims = Jwts.parser()
                         .setSigningKey(getSignKey(keyManager.getCurrentSecretKey()))
                         .build()
                         .parseClaimsJws(token)
@@ -55,7 +55,7 @@ public class JwtUtils {
                 // 如果当前密钥失败，尝试使用上一个密钥（密钥轮换场景）
                 String previousKey = keyManager.getPreviousSecretKey();
                 if (previousKey != null) {
-                    claims = Jwts.parserBuilder()
+                    claims = Jwts.parser()
                             .setSigningKey(getSignKey(previousKey))
                             .build()
                             .parseClaimsJws(token)

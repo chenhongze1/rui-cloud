@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
@@ -21,7 +20,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.nio.file.AccessDeniedException as FileAccessDeniedException;
 import java.sql.SQLException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -158,7 +156,7 @@ public class GlobalExceptionHandler {
     /**
      * 权限不足异常
      */
-    @ExceptionHandler({AccessDeniedException.class, FileAccessDeniedException.class})
+    @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class, java.nio.file.AccessDeniedException.class})
     public R<Void> handleAccessDeniedException(Exception e, HttpServletRequest request) {
         String errorId = secureHandler.generateErrorId();
         ErrorCode errorCode = ErrorCode.ACCESS_DENIED;

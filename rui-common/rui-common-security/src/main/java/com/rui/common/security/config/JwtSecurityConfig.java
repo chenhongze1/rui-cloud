@@ -85,4 +85,70 @@ public class JwtSecurityConfig {
      * 审计日志前缀
      */
     private String auditLogPrefix = "jwt:audit:";
+
+    /**
+     * 黑名单配置
+     */
+    private BlacklistConfig blacklist = new BlacklistConfig();
+
+    /**
+     * 密钥轮换配置
+     */
+    private KeyRotationConfig keyRotation = new KeyRotationConfig();
+
+    /**
+     * 获取JWT过期时间
+     */
+    public Duration getExpiration() {
+        return expireTime;
+    }
+
+    /**
+     * 获取刷新令牌过期时间
+     */
+    public Duration getRefreshExpiration() {
+        return refreshExpireTime;
+    }
+
+    /**
+     * 黑名单配置类
+     */
+    @Data
+    public static class BlacklistConfig {
+        /**
+         * 是否启用黑名单
+         */
+        private boolean enabled = true;
+
+        /**
+         * 黑名单清理间隔（默认1小时）
+         */
+        private Duration cleanupInterval = Duration.ofHours(1);
+
+        /**
+         * 黑名单缓存前缀
+         */
+        private String cachePrefix = "jwt:blacklist:";
+    }
+
+    /**
+     * 密钥轮换配置类
+     */
+    @Data
+    public static class KeyRotationConfig {
+        /**
+         * 是否启用密钥轮换
+         */
+        private boolean enabled = false;
+
+        /**
+         * 密钥轮换间隔（默认24小时）
+         */
+        private Duration interval = Duration.ofHours(24);
+
+        /**
+         * 密钥宽限期（默认1小时）
+         */
+        private Duration gracePeriod = Duration.ofHours(1);
+    }
 }

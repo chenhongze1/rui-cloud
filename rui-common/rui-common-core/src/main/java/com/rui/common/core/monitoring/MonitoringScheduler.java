@@ -8,7 +8,7 @@ import org.springframework.boot.actuate.health.Status;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -35,7 +35,7 @@ public class MonitoringScheduler {
     public void init() {
         // 创建线程池用于异步执行监控任务
         this.executorService = Executors.newFixedThreadPool(
-            monitoringConfig.getPerformance().getThreadPoolSize()
+            monitoringConfig.getMetrics().getThreadPoolSize()
         );
         log.info("监控任务调度器初始化完成");
     }
@@ -96,7 +96,7 @@ public class MonitoringScheduler {
                 
                 // 记录健康状态指标
                 String status = overallHealth.getStatus().getCode();
-                metricsCollector.recordHealthStatus(status);
+                metricsCollector.recordHealthStatus(status, Status.UP.equals(overallHealth.getStatus()));
                 
                 // 如果健康状态异常，记录详细信息
                 if (!Status.UP.equals(overallHealth.getStatus())) {
@@ -107,7 +107,7 @@ public class MonitoringScheduler {
                 log.debug("健康检查完成: {}", status);
             } catch (Exception e) {
                 log.error("健康检查失败", e);
-                metricsCollector.recordHealthStatus("ERROR");
+                metricsCollector.recordHealthStatus("ERROR", false);
             }
         }, executorService);
     }
@@ -221,7 +221,7 @@ public class MonitoringScheduler {
      * 检查并报告慢操作
      */
     private void checkAndReportSlowOperations() {
-        long threshold = monitoringConfig.getPerformance().getSlowOperationThreshold();
+        long threshold = monitoringConfig.getPerformance().getSlowOperationThreshold().toMillis();
         
         // 检查各种操作的执行时间
         // 如果超过阈值，记录并可能发送告警

@@ -31,6 +31,10 @@ public class MetricsCollector {
 
     private final MeterRegistry meterRegistry;
     private final MonitoringConfig monitoringConfig;
+    
+    public MeterRegistry getMeterRegistry() {
+        return meterRegistry;
+    }
 
     // 系统指标
     private final AtomicLong totalRequests = new AtomicLong(0);
@@ -113,18 +117,23 @@ public class MetricsCollector {
 
         // 自定义JVM指标
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
-        Gauge.builder("jvm.memory.heap.utilization")
-            .description("JVM堆内存使用率")
-            .register(meterRegistry, memoryBean, bean -> {
+        Gauge.builder("jvm.memory.heap.utilization", memoryBean, bean -> {
                 long used = bean.getHeapMemoryUsage().getUsed();
                 long max = bean.getHeapMemoryUsage().getMax();
                 return max > 0 ? (double) used / max : 0;
-            });
+            })
+            .description("JVM堆内存使用率")
+            .register(meterRegistry);
 
         OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-        Gauge.builder("system.cpu.usage")
+        Gauge.builder("system.cpu.usage", osBean, bean -> {
+            if (bean instanceof com.sun.management.OperatingSystemMXBean) {
+                return ((com.sun.management.OperatingSystemMXBean) bean).getProcessCpuLoad();
+            }
+            return 0.0;
+        })
             .description("系统CPU使用率")
-            .register(meterRegistry, osBean, OperatingSystemMXBean::getProcessCpuLoad);
+            .register(meterRegistry);
     }
 
     /**
@@ -136,13 +145,16 @@ public class MetricsCollector {
         new ProcessorMetrics().bindTo(meterRegistry);
         new FileDescriptorMetrics().bindTo(meterRegistry);
         new UptimeMetrics().bindTo(meterRegistry);
-        new DiskSpaceMetrics(java.io.File.listRoots()).bindTo(meterRegistry);
+        java.io.File[] roots = java.io.File.listRoots();
+        if (roots.length > 0) {
+            new io.micrometer.core.instrument.binder.system.DiskSpaceMetrics(roots[0]).bindTo(meterRegistry);
+        }
 
         // 自定义系统指标
-        Gauge.builder("system.load.average")
+        Gauge.builder("system.load.average", ManagementFactory.getOperatingSystemMXBean(),
+                bean -> bean.getSystemLoadAverage())
             .description("系统平均负载")
-            .register(meterRegistry, ManagementFactory.getOperatingSystemMXBean(),
-                bean -> bean.getSystemLoadAverage());
+            .register(meterRegistry);
     }
 
     /**
@@ -172,14 +184,14 @@ public class MetricsCollector {
             .register(meterRegistry);
 
         // 活跃连接数
-        Gauge.builder("http.connections.active")
+        Gauge.builder("http.connections.active", this, collector -> (double) (totalRequests.get() - successfulRequests.get() - failedRequests.get()))
             .description("活跃HTTP连接数")
-            .register(meterRegistry, this, collector -> totalRequests.get() - successfulRequests.get() - failedRequests.get());
+            .register(meterRegistry);
 
         // 平均响应时间
-        Gauge.builder("http.response.time.average")
+        Gauge.builder("http.response.time.average", averageResponseTime, AtomicReference::get)
             .description("平均HTTP响应时间")
-            .register(meterRegistry, averageResponseTime, AtomicReference::get);
+            .register(meterRegistry);
     }
 
     /**
@@ -200,13 +212,13 @@ public class MetricsCollector {
 
         // 数据库连接池指标
         if (dbConfig.isConnectionPoolMetrics()) {
-            Gauge.builder("database.connections.active")
+            Gauge.builder("database.connections.active", this, collector -> (double) getActiveDbConnections())
                 .description("活跃数据库连接数")
-                .register(meterRegistry, this, collector -> getActiveDbConnections());
+                .register(meterRegistry);
 
-            Gauge.builder("database.connections.idle")
+            Gauge.builder("database.connections.idle", this, collector -> (double) getIdleDbConnections())
                 .description("空闲数据库连接数")
-                .register(meterRegistry, this, collector -> getIdleDbConnections());
+                .register(meterRegistry);
         }
 
         // 慢查询计数器
@@ -240,9 +252,9 @@ public class MetricsCollector {
 
         // Redis连接指标
         if (redisConfig.isConnectionMetrics()) {
-            Gauge.builder("redis.connections.active")
+            Gauge.builder("redis.connections.active", this, collector -> (double) getActiveRedisConnections())
                 .description("活跃Redis连接数")
-                .register(meterRegistry, this, collector -> getActiveRedisConnections());
+                .register(meterRegistry);
         }
 
         // Redis命令指标
@@ -258,16 +270,16 @@ public class MetricsCollector {
 
         // Redis内存指标
         if (redisConfig.isMemoryMetrics()) {
-            Gauge.builder("redis.memory.used")
+            Gauge.builder("redis.memory.used", this, collector -> (double) getRedisMemoryUsed())
                 .description("Redis内存使用量")
-                .register(meterRegistry, this, collector -> getRedisMemoryUsed());
+                .register(meterRegistry);
         }
 
         // Redis键空间指标
         if (redisConfig.isKeyspaceMetrics()) {
-            Gauge.builder("redis.keyspace.keys")
+            Gauge.builder("redis.keyspace.keys", this, collector -> (double) getRedisKeyCount())
                 .description("Redis键数量")
-                .register(meterRegistry, this, collector -> getRedisKeyCount());
+                .register(meterRegistry);
         }
     }
 
@@ -288,9 +300,9 @@ public class MetricsCollector {
             .register(meterRegistry);
 
         // 活跃用户数
-        Gauge.builder("business.users.active")
+        Gauge.builder("business.users.active", activeUsers, AtomicLong::doubleValue)
             .description("活跃用户数")
-            .register(meterRegistry, activeUsers, AtomicLong::get);
+            .register(meterRegistry);
 
         // 交易指标
         if (businessConfig.getBusinessMetrics().isTransactionMetrics()) {
@@ -302,9 +314,9 @@ public class MetricsCollector {
                 .description("失败交易数")
                 .register(meterRegistry);
 
-            Gauge.builder("business.transactions.success.rate")
+            Gauge.builder("business.transactions.success.rate", this, collector -> calculateTransactionSuccessRate())
                 .description("交易成功率")
-                .register(meterRegistry, this, collector -> calculateTransactionSuccessRate());
+                .register(meterRegistry);
         }
 
         // 错误率指标
@@ -313,15 +325,15 @@ public class MetricsCollector {
                 .description("业务错误数")
                 .register(meterRegistry);
 
-            Gauge.builder("business.error.rate")
+            Gauge.builder("business.error.rate", this, collector -> calculateErrorRate())
                 .description("业务错误率")
-                .register(meterRegistry, this, collector -> calculateErrorRate());
+                .register(meterRegistry);
         }
 
         // 会话指标
-        activeSessionsGauge = Gauge.builder("business.sessions.active")
+        activeSessionsGauge = Gauge.builder("business.sessions.active", this, collector -> (double) getActiveSessionCount())
             .description("活跃会话数")
-            .register(meterRegistry, this, collector -> getActiveSessionCount());
+            .register(meterRegistry);
     }
 
     /**
@@ -331,20 +343,20 @@ public class MetricsCollector {
         log.debug("注册自定义指标...");
 
         // 应用启动时间
-        Gauge.builder("application.uptime")
+        Gauge.builder("application.uptime", ManagementFactory.getRuntimeMXBean(),
+                bean -> bean.getUptime() / 1000.0)
             .description("应用运行时间")
-            .register(meterRegistry, ManagementFactory.getRuntimeMXBean(),
-                bean -> bean.getUptime() / 1000.0);
+            .register(meterRegistry);
 
         // 线程池指标
-        Gauge.builder("threadpool.active.threads")
+        Gauge.builder("threadpool.active.threads", Thread.class, clazz -> (double) Thread.activeCount())
             .description("活跃线程数")
-            .register(meterRegistry, Thread::activeCount);
+            .register(meterRegistry);
 
         // 垃圾回收指标
-        Gauge.builder("gc.pause.total")
+        Gauge.builder("gc.pause.total", this, collector -> (double) getTotalGcTime())
             .description("GC暂停总时间")
-            .register(meterRegistry, this, collector -> getTotalGcTime());
+            .register(meterRegistry);
     }
 
     // ========== 指标记录方法 ==========
@@ -396,7 +408,52 @@ public class MetricsCollector {
      */
     public void recordBusinessOperation(String operation, String result) {
         if (businessOperationCounter != null) {
-            businessOperationCounter.increment(Tags.of("operation", operation, "result", result));
+            Counter.builder("business.operations.total")
+                .tags("operation", operation, "result", result)
+                .register(meterRegistry)
+                .increment();
+        }
+    }
+
+    /**
+     * 记录健康状态
+     */
+    public void recordHealthStatus(String component, boolean healthy) {
+        Gauge.builder("health.status", this, collector -> healthy ? 1.0 : 0.0)
+            .description("组件健康状态")
+            .tags("component", component)
+            .register(meterRegistry);
+    }
+
+    /**
+     * 记录JVM指标
+     */
+    public void recordJvmMetrics() {
+        // JVM内存使用情况
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        
+        Gauge.builder("jvm.memory.used", memoryBean, bean -> (double) bean.getHeapMemoryUsage().getUsed())
+                .description("JVM已使用内存")
+                .register(meterRegistry);
+        
+        Gauge.builder("jvm.memory.total", memoryBean, bean -> (double) bean.getHeapMemoryUsage().getMax())
+                .description("JVM总内存")
+                .register(meterRegistry);
+    }
+
+    /**
+     * 记录系统指标
+     */
+    public void recordSystemMetrics() {
+        // 系统CPU使用率等指标
+        com.sun.management.OperatingSystemMXBean osBean = 
+            (com.sun.management.OperatingSystemMXBean) java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        
+        double cpuUsage = osBean.getProcessCpuLoad();
+        if (cpuUsage >= 0) {
+            Gauge.builder("system.cpu.usage", osBean, bean -> bean.getProcessCpuLoad())
+                    .description("系统CPU使用率")
+                    .register(meterRegistry);
         }
     }
 
@@ -405,7 +462,10 @@ public class MetricsCollector {
      */
     public void recordError(String errorType, String errorCode) {
         if (errorCounter != null) {
-            errorCounter.increment(Tags.of("type", errorType, "code", errorCode));
+            Counter.builder("errors.total")
+                .tags("type", errorType, "code", errorCode)
+                .register(meterRegistry)
+                .increment();
         }
     }
 

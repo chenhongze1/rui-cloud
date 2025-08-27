@@ -5,11 +5,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -383,7 +384,7 @@ public class RedisPerformanceOptimizer {
         Timer.Sample sample = Timer.start();
         
         try {
-            redisTemplate.executePipelined((connection) -> {
+            redisTemplate.executePipelined((RedisConnection connection) -> {
                 for (BatchOperation operation : operations) {
                     switch (operation.getType()) {
                         case SET:
@@ -415,7 +416,7 @@ public class RedisPerformanceOptimizer {
                         .description("Redis batch operations time")
                         .register(meterRegistry));
                 
-                meterRegistry.counter("redis.batch.operations.count", operations.size());
+                meterRegistry.counter("redis.batch.operations.count").increment(operations.size());
             }
             
             log.debug("批量操作执行完成，操作数: {}", operations.size());

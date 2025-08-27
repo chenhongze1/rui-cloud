@@ -56,11 +56,7 @@
             <artifactId>feign-jackson</artifactId>
         </dependency>
         
-        <!-- Feign GZIP -->
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-gzip</artifactId>
-        </dependency>
+        <!-- Feign GZIP dependency removed as it doesn't exist in Maven Central -->
         
         <!-- Spring Boot Configuration Processor -->
         <dependency>

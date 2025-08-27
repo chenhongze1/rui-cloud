@@ -172,9 +172,10 @@ public class MessageProducerServiceImpl implements MessageProducerService {
     public SendResult sendTransactionMessage(String topic, String tag, Object message, Object arg) {
         try {
             String destination = buildDestination(topic, tag);
+            Message<Object> msg = buildMessage(message, null, null);
             
             log.debug("发送事务消息 - Topic: {}, Tag: {}", topic, tag);
-            SendResult result = rocketMQTemplate.sendMessageInTransaction(destination, message, arg);
+            SendResult result = rocketMQTemplate.sendMessageInTransaction(destination, msg, arg);
             log.debug("事务消息发送成功 - MsgId: {}, Status: {}", result.getMsgId(), result.getSendStatus());
             
             return result;

@@ -82,7 +82,8 @@ public class TracingConfig {
         /**
          * 自定义采样规则
          */
-        private List<SamplingRule> rules = new ArrayList<>();n    }
+        private List<SamplingRule> rules = new ArrayList<>();
+    }
 
     /**
      * 导出配置

@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.PostConstruct;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.constraints.*;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import jakarta.validation.constraints.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -248,8 +248,8 @@ public class ConfigValidator {
         }
         
         // 检查@Pattern
-        if (field.isAnnotationPresent(Pattern.class) && value instanceof String) {
-            Pattern pattern = java.util.regex.Pattern.compile(field.getAnnotation(Pattern.class).regexp());
+        if (field.isAnnotationPresent(jakarta.validation.constraints.Pattern.class) && value instanceof String) {
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(field.getAnnotation(jakarta.validation.constraints.Pattern.class).regexp());
             if (!pattern.matcher((String) value).matches()) {
                 errors.add(fieldName + " does not match required pattern");
             }

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 统一响应结果类
@@ -47,6 +49,11 @@ public class R<T> implements Serializable {
      * 时间戳
      */
     private long timestamp;
+
+    /**
+     * 额外数据
+     */
+    private Map<String, Object> extra;
 
     public R(int code, String msg, T data) {
         this.code = code;
@@ -167,6 +174,22 @@ public class R<T> implements Serializable {
 
     public static <T> Boolean isSuccess(R<T> ret) {
         return R.SUCCESS == ret.getCode();
+    }
+
+    /**
+     * 添加额外数据
+     *
+     * @param key   键
+     * @param value 值
+     * @return 当前对象
+     */
+    @SuppressWarnings("unchecked")
+    public <R> R put(String key, Object value) {
+        if (this.extra == null) {
+            this.extra = new HashMap<>();
+        }
+        this.extra.put(key, value);
+        return (R) this;
     }
 
     @Override

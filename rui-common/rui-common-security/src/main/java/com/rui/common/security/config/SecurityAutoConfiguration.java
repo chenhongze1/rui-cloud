@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * 安全模块自动配置类
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class SecurityAutoConfiguration {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * JWT密钥管理器
@@ -38,7 +40,7 @@ public class SecurityAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "rui.security.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JwtKeyManager jwtKeyManager(JwtSecurityConfig jwtSecurityConfig) {
-        return new JwtKeyManager(jwtSecurityConfig, redisTemplate);
+        return new JwtKeyManager(jwtSecurityConfig, stringRedisTemplate);
     }
 
     /**
@@ -48,7 +50,7 @@ public class SecurityAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "rui.security.jwt.blacklist", name = "enabled", havingValue = "true")
     public JwtBlacklistService jwtBlacklistService(JwtSecurityConfig jwtSecurityConfig) {
-        return new JwtBlacklistService(jwtSecurityConfig, redisTemplate);
+        return new JwtBlacklistService(jwtSecurityConfig, stringRedisTemplate);
     }
 
     /**

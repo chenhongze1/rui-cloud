@@ -100,19 +100,19 @@ public class AlertManager {
         String alertContent = buildAlertContent(level, title, message, context);
         
         // 根据配置的渠道发送告警
-        if (alertConfig.getChannels().isEmailEnabled()) {
+        if (alertConfig.getChannels().getEmail().isEnabled()) {
             sendEmailAlert(alertContent, alertConfig.getChannels().getEmail());
         }
         
-        if (alertConfig.getChannels().isSmsEnabled()) {
+        if (alertConfig.getChannels().getSms().isEnabled()) {
             sendSmsAlert(alertContent, alertConfig.getChannels().getSms());
         }
         
-        if (alertConfig.getChannels().isWebhookEnabled()) {
+        if (alertConfig.getChannels().getWebhook().isEnabled()) {
             sendWebhookAlert(alertContent, alertConfig.getChannels().getWebhook());
         }
         
-        if (alertConfig.getChannels().isDingTalkEnabled()) {
+        if (alertConfig.getChannels().getDingTalk().isEnabled()) {
             sendDingTalkAlert(alertContent, alertConfig.getChannels().getDingTalk());
         }
         
@@ -161,7 +161,7 @@ public class AlertManager {
     private void sendSmsAlert(String content, MonitoringConfig.SmsConfig smsConfig) {
         try {
             // 这里实现短信发送逻辑
-            log.info("发送短信告警到: {}", smsConfig.getPhones());
+            log.info("发送短信告警到: {}", smsConfig.getPhoneNumbers());
             log.debug("短信内容: {}", content);
             
             // 实际实现中可以集成阿里云短信、腾讯云短信等服务
@@ -219,7 +219,7 @@ public class AlertManager {
             return false;
         }
         
-        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getIntervalMinutes();
+        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getCooldownPeriod().toMinutes();
         return lastAlertTime.plusMinutes(suppressionMinutes).isAfter(LocalDateTime.now());
     }
 
@@ -240,7 +240,7 @@ public class AlertManager {
      */
     private void cleanupExpiredSuppressions() {
         LocalDateTime now = LocalDateTime.now();
-        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getIntervalMinutes();
+        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getCooldownPeriod().toMinutes();
         
         alertSuppressionCache.entrySet().removeIf(entry -> 
             entry.getValue().plusMinutes(suppressionMinutes).isBefore(now)

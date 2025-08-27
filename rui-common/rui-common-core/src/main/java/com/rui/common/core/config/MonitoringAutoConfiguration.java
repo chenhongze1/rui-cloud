@@ -1,7 +1,12 @@
 package com.rui.common.core.config;
 
+import com.rui.common.core.monitoring.AlertManager;
+import com.rui.common.core.monitoring.AlertRuleEngine;
+import com.rui.common.core.monitoring.CustomHealthEndpoint;
+import com.rui.common.core.monitoring.CustomMetricsEndpoint;
 import com.rui.common.core.monitoring.HealthChecker;
 import com.rui.common.core.monitoring.MetricsCollector;
+import com.rui.common.core.monitoring.MonitoringScheduler;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;

@@ -1,7 +1,8 @@
 package com.rui.common.web.exception;
 
 import com.rui.common.core.enums.ErrorCode;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,10 @@ import java.util.regex.Pattern;
  *
  * @author rui
  */
-@Slf4j
 @Component
 public class SecureExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(SecureExceptionHandler.class);
 
     @Value("${security.exception.mask-sensitive-info:true}")
     private boolean maskSensitiveInfo;
@@ -28,16 +30,16 @@ public class SecureExceptionHandler {
 
     // 敏感信息正则表达式
     private static final Pattern[] SENSITIVE_PATTERNS = {
-            Pattern.compile("password[\s]*[=:][\s]*[\w]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("token[\s]*[=:][\s]*[\w\-\.]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("secret[\s]*[=:][\s]*[\w]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("key[\s]*[=:][\s]*[\w\-]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("authorization[\s]*[=:][\s]*[\w\s\-\.]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\b\d{15,19}\b"), // 银行卡号
-            Pattern.compile("\b\d{17}[\dXx]\b"), // 身份证号
-            Pattern.compile("\b1[3-9]\d{9}\b"), // 手机号
-            Pattern.compile("[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}"), // 邮箱
-            Pattern.compile("\b(?:\d{1,3}\.){3}\d{1,3}\b") // IP地址
+            Pattern.compile("password[\\s]*[=:][\\s]*[\\w]+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("token[\\s]*[=:][\\s]*[\\w\\-\\.]+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("secret[\\s]*[=:][\\s]*[\\w]+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("key[\\s]*[=:][\\s]*[\\w\\-]+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("authorization[\\s]*[=:][\\s]*[\\w\\s\\-\\.]+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\b\\d{15,19}\\b"), // 银行卡号
+            Pattern.compile("\\b\\d{17}[\\dXx]\\b"), // 身份证号
+            Pattern.compile("\\b1[3-9]\\d{9}\\b"), // 手机号
+            Pattern.compile("[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}"), // 邮箱
+            Pattern.compile("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b") // IP地址
     };
 
     /**

@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -156,7 +156,7 @@ public class RedisPoolManager {
         poolConf.setBlockWhenExhausted(poolConfig.isBlockWhenExhausted());
         
         // 设置连接和读取超时
-        factory.setTimeout(poolConfig.getConnection().getConnectTimeout());
+        factory.setTimeout(this.poolConfig.getConnection().getConnectTimeout().toMillis());
         
         log.info("Lettuce连接池配置完成: maxTotal={}, maxIdle={}, minIdle={}", 
                 poolConfig.getMaxTotal(), poolConfig.getMaxIdle(), poolConfig.getMinIdle());
@@ -277,8 +277,8 @@ public class RedisPoolManager {
         meterRegistry.gauge("redis.pool.total.connections", metrics.getTotalConnections());
         meterRegistry.gauge("redis.pool.active.connections", metrics.getActiveConnections());
         meterRegistry.gauge("redis.pool.idle.connections", metrics.getIdleConnections());
-        meterRegistry.counter("redis.pool.commands.total", metrics.getCommandCount());
-        meterRegistry.counter("redis.pool.errors.total", metrics.getErrorCount());
+        meterRegistry.counter("redis.pool.commands.total").increment(metrics.getCommandCount());
+        meterRegistry.counter("redis.pool.errors.total").increment(metrics.getErrorCount());
     }
 
     /**

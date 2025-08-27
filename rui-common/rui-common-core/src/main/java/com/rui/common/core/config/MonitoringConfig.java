@@ -100,6 +100,18 @@ public class MonitoringConfig {
          * Redis指标配置
          */
         private RedisMetricsConfig redis = new RedisMetricsConfig();
+        
+        public boolean isJvmEnabled() {
+            return jvm.isEnabled();
+        }
+        
+        public boolean isSystemEnabled() {
+            return enabledMetrics.contains("system");
+        }
+        
+        public int getThreadPoolSize() {
+            return 10; // 默认线程池大小
+        }
     }
 
     /**
@@ -262,6 +274,18 @@ public class MonitoringConfig {
          * 资源使用监控
          */
         private ResourceUsageConfig resourceUsage = new ResourceUsageConfig();
+        
+        public boolean isSlowOperationEnabled() {
+            return slowOperation.isEnabled();
+        }
+        
+        public boolean isResourceUsageEnabled() {
+            return resourceUsage.isEnabled();
+        }
+        
+        public Duration getSlowOperationThreshold() {
+            return slowOperation.getSlowOperationThreshold();
+        }
     }
 
     /**
@@ -284,6 +308,10 @@ public class MonitoringConfig {
         private Duration httpRequestThreshold = Duration.ofSeconds(2);
         private Duration databaseQueryThreshold = Duration.ofSeconds(1);
         private Duration redisOperationThreshold = Duration.ofMillis(100);
+        
+        public Duration getSlowOperationThreshold() {
+            return httpRequestThreshold;
+        }
     }
 
     /**
@@ -399,6 +427,8 @@ public class MonitoringConfig {
         private double threshold;
         private Duration duration;
         private String severity; // critical, warning, info
+        private String level = "warning"; // critical, warning, info
+        private int consecutiveCount = 1; // 连续触发次数
         private String description;
         private Map<String, String> labels;
     }

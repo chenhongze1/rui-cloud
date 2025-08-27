@@ -42,7 +42,7 @@ public class FeignRetryer implements Retryer {
         
         long interval;
         if (e.retryAfter() != null) {
-            interval = e.retryAfter().getTime() - System.currentTimeMillis();
+            interval = e.retryAfter() - System.currentTimeMillis();
             if (interval > maxPeriod) {
                 interval = maxPeriod;
             }

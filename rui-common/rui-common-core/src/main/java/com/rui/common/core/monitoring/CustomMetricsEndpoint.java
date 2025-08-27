@@ -182,7 +182,7 @@ public class CustomMetricsEndpoint {
             .timer();
         if (gcPause != null) {
             gc.put("pauseCount", gcPause.count());
-            gc.put("pauseTotalTime", gcPause.totalTime());
+            gc.put("pauseTotalTime", gcPause.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return gc;
@@ -264,8 +264,8 @@ public class CustomMetricsEndpoint {
             .timer();
         if (httpRequests != null) {
             http.put("requestCount", httpRequests.count());
-            http.put("requestTotalTime", httpRequests.totalTime());
-            http.put("requestMeanTime", httpRequests.mean());
+            http.put("requestTotalTime", httpRequests.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            http.put("requestMeanTime", httpRequests.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return http;
@@ -281,8 +281,8 @@ public class CustomMetricsEndpoint {
             .timer();
         if (dbQueries != null) {
             database.put("queryCount", dbQueries.count());
-            database.put("queryTotalTime", dbQueries.totalTime());
-            database.put("queryMeanTime", dbQueries.mean());
+            database.put("queryTotalTime", dbQueries.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            database.put("queryMeanTime", dbQueries.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return database;
@@ -298,8 +298,8 @@ public class CustomMetricsEndpoint {
             .timer();
         if (redisOps != null) {
             redis.put("operationCount", redisOps.count());
-            redis.put("operationTotalTime", redisOps.totalTime());
-            redis.put("operationMeanTime", redisOps.mean());
+            redis.put("operationTotalTime", redisOps.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            redis.put("operationMeanTime", redisOps.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return redis;
