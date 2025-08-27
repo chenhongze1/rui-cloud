@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.rui.common.core.domain.PageQuery;
+import com.rui.common.core.page.PageQuery;
 import com.rui.common.core.page.TableDataInfo;
 import cn.hutool.core.util.StrUtil;
 
