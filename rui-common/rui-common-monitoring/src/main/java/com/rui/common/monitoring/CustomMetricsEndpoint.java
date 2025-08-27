@@ -264,7 +264,8 @@ public class CustomMetricsEndpoint {
             .timer();
         if (httpRequests != null) {
             http.put("requestCount", httpRequests.count());
-            http.put("totalTime", httpRequests.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            http.put("requestTotalTime", httpRequests.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            http.put("requestMeanTime", httpRequests.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return http;
@@ -276,10 +277,12 @@ public class CustomMetricsEndpoint {
     private Map<String, Object> getDatabaseMetrics() {
         Map<String, Object> database = new HashMap<>();
         
-        Gauge dbConnections = metricsCollector.getMeterRegistry().find("hikaricp.connections.active")
-            .gauge();
-        if (dbConnections != null) {
-            database.put("activeConnections", dbConnections.value());
+        Timer dbQueries = metricsCollector.getMeterRegistry().find("database.query")
+            .timer();
+        if (dbQueries != null) {
+            database.put("queryCount", dbQueries.count());
+            database.put("queryTotalTime", dbQueries.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            database.put("queryMeanTime", dbQueries.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return database;
@@ -291,10 +294,12 @@ public class CustomMetricsEndpoint {
     private Map<String, Object> getRedisMetrics() {
         Map<String, Object> redis = new HashMap<>();
         
-        Counter redisCommands = metricsCollector.getMeterRegistry().find("redis.commands")
-            .counter();
-        if (redisCommands != null) {
-            redis.put("commandCount", redisCommands.count());
+        Timer redisOps = metricsCollector.getMeterRegistry().find("redis.operation")
+            .timer();
+        if (redisOps != null) {
+            redis.put("operationCount", redisOps.count());
+            redis.put("operationTotalTime", redisOps.totalTime(java.util.concurrent.TimeUnit.MILLISECONDS));
+            redis.put("operationMeanTime", redisOps.mean(java.util.concurrent.TimeUnit.MILLISECONDS));
         }
         
         return redis;
@@ -306,16 +311,16 @@ public class CustomMetricsEndpoint {
     private Map<String, Object> getBusinessMetrics() {
         Map<String, Object> business = new HashMap<>();
         
-        Counter userLogins = metricsCollector.getMeterRegistry().find("user.logins")
+        Counter userLogins = metricsCollector.getMeterRegistry().find("user.login")
             .counter();
         if (userLogins != null) {
             business.put("userLogins", userLogins.count());
         }
         
-        Counter orderCreated = metricsCollector.getMeterRegistry().find("order.created")
-            .counter();
-        if (orderCreated != null) {
-            business.put("orderCreated", orderCreated.count());
+        Gauge activeUsers = metricsCollector.getMeterRegistry().find("user.active")
+            .gauge();
+        if (activeUsers != null) {
+            business.put("activeUsers", activeUsers.value());
         }
         
         return business;

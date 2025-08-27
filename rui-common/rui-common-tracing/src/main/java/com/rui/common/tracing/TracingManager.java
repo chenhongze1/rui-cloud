@@ -1,6 +1,6 @@
 package com.rui.common.tracing;
 
-import com.rui.common.tracing.config.TracingConfig;
+import com.rui.common.core.config.TracingConfig;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -40,9 +40,9 @@ public class TracingManager {
     
     @PostConstruct
     public void init() {
-        if (openTelemetry != null) {
-            this.tracer = openTelemetry.getTracer("rui-cloud", "1.0.0");
-            log.info("TracingManager initialized with OpenTelemetry");
+        if (tracingConfig.isEnabled()) {
+            this.tracer = openTelemetry.getTracer(tracingConfig.getServiceName());
+            log.info("链路追踪管理器初始化完成: serviceName={}", tracingConfig.getServiceName());
         }
     }
     
@@ -57,13 +57,14 @@ public class TracingManager {
      * 创建一个新的Span
      */
     public Span createSpan(String operationName, SpanKind spanKind) {
-        if (tracer == null) {
+        if (!tracingConfig.isEnabled() || tracer == null) {
             return Span.getInvalid();
         }
         
         try {
             SpanBuilder spanBuilder = tracer.spanBuilder(operationName)
-                .setSpanKind(spanKind);
+                .setSpanKind(spanKind)
+                .setStartTimestamp(Instant.now());
             
             // 添加默认标签
             addDefaultTags(spanBuilder);
@@ -74,11 +75,11 @@ public class TracingManager {
             String spanId = span.getSpanContext().getSpanId();
             activeSpans.put(spanId, span);
             
-            log.debug("Created span: {} with kind: {}", operationName, spanKind);
+            log.debug("创建Span: operation={}, spanId={}", operationName, spanId);
             return span;
             
         } catch (Exception e) {
-            log.error("Failed to create span: {}", operationName, e);
+            log.error("创建Span失败: operation={}", operationName, e);
             return Span.getInvalid();
         }
     }
@@ -87,31 +88,32 @@ public class TracingManager {
      * 创建子Span
      */
     public Span createChildSpan(String operationName, Span parentSpan) {
-        if (tracer == null || parentSpan == null) {
-            return createSpan(operationName);
+        if (!tracingConfig.isEnabled() || tracer == null || parentSpan == null) {
+            return Span.getInvalid();
         }
         
         try {
-            SpanBuilder spanBuilder = tracer.spanBuilder(operationName)
-                .setParent(Context.current().with(parentSpan))
-                .setSpanKind(SpanKind.INTERNAL);
+            Context parentContext = Context.current().with(parentSpan);
             
-            // 添加默认标签
+            SpanBuilder spanBuilder = tracer.spanBuilder(operationName)
+                .setParent(parentContext)
+                .setSpanKind(SpanKind.INTERNAL)
+                .setStartTimestamp(Instant.now());
+            
             addDefaultTags(spanBuilder);
             
             Span span = spanBuilder.startSpan();
             
-            // 缓存活跃的Span
             String spanId = span.getSpanContext().getSpanId();
             activeSpans.put(spanId, span);
             
-            log.debug("Created child span: {} under parent: {}", 
-                operationName, parentSpan.getSpanContext().getSpanId());
+            log.debug("创建子Span: operation={}, spanId={}, parentId={}", 
+                operationName, spanId, parentSpan.getSpanContext().getSpanId());
             return span;
             
         } catch (Exception e) {
-            log.error("Failed to create child span: {}", operationName, e);
-            return createSpan(operationName);
+            log.error("创建子Span失败: operation={}", operationName, e);
+            return Span.getInvalid();
         }
     }
     
@@ -125,7 +127,8 @@ public class TracingManager {
             span.setStatus(StatusCode.OK);
             return result;
         } catch (Exception e) {
-            recordException(span, e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
+            span.recordException(e);
             throw e;
         } finally {
             finishSpan(span);
@@ -141,7 +144,8 @@ public class TracingManager {
             operation.run();
             span.setStatus(StatusCode.OK);
         } catch (Exception e) {
-            recordException(span, e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
+            span.recordException(e);
             throw e;
         } finally {
             finishSpan(span);
@@ -152,25 +156,25 @@ public class TracingManager {
      * 为Span添加字符串标签
      */
     public void addSpanTag(Span span, String key, String value) {
-        if (span != null && key != null && value != null) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             span.setAttribute(key, value);
         }
     }
-    
+
     /**
-     * 为Span添加数字标签
+     * 添加Span标签（数值）
      */
     public void addSpanTag(Span span, String key, long value) {
-        if (span != null && key != null) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             span.setAttribute(key, value);
         }
     }
-    
+
     /**
-     * 为Span添加布尔标签
+     * 添加Span标签（布尔值）
      */
     public void addSpanTag(Span span, String key, boolean value) {
-        if (span != null && key != null) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             span.setAttribute(key, value);
         }
     }
@@ -179,47 +183,38 @@ public class TracingManager {
      * 为Span添加事件
      */
     public void addSpanEvent(Span span, String eventName) {
-        if (span != null && eventName != null) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             span.addEvent(eventName);
         }
     }
-    
+
     /**
-     * 为Span添加事件和属性
+     * 添加Span事件（带属性）
      */
     public void addSpanEvent(Span span, String eventName, Map<String, String> attributes) {
-        if (span != null && eventName != null) {
-            if (attributes != null && !attributes.isEmpty()) {
-                io.opentelemetry.api.common.AttributesBuilder builder = io.opentelemetry.api.common.Attributes.builder();
-                attributes.forEach(builder::put);
-                span.addEvent(eventName, builder.build());
-            } else {
-                span.addEvent(eventName);
-            }
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
+            io.opentelemetry.api.common.AttributesBuilder builder = io.opentelemetry.api.common.Attributes.builder();
+            attributes.forEach(builder::put);
+            span.addEvent(eventName, builder.build());
         }
     }
     
     /**
-     * 记录异常到Span
+     * 记录异常
      */
     public void recordException(Span span, Throwable exception) {
-        if (span != null && exception != null) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             span.recordException(exception);
             span.setStatus(StatusCode.ERROR, exception.getMessage());
-            log.debug("Recorded exception in span: {}", exception.getMessage());
         }
     }
-    
+
     /**
      * 设置Span状态
      */
     public void setSpanStatus(Span span, StatusCode statusCode, String description) {
-        if (span != null) {
-            if (description != null) {
-                span.setStatus(statusCode, description);
-            } else {
-                span.setStatus(statusCode);
-            }
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
+            span.setStatus(statusCode, description);
         }
     }
     
@@ -227,73 +222,56 @@ public class TracingManager {
      * 完成Span
      */
     public void finishSpan(Span span) {
-        if (span != null && span.getSpanContext().isValid()) {
+        if (span != null && !span.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
             try {
+                span.end();
+                
                 // 从缓存中移除
                 String spanId = span.getSpanContext().getSpanId();
                 activeSpans.remove(spanId);
                 
-                // 结束Span
-                span.end();
-                log.debug("Finished span: {}", spanId);
-                
+                log.debug("完成Span: spanId={}", spanId);
             } catch (Exception e) {
-                log.error("Failed to finish span", e);
+                log.error("完成Span失败", e);
             }
         }
     }
     
     /**
-     * 获取当前活跃的Span
+     * 获取当前Span
      */
     public Span getCurrentSpan() {
-        try {
-            return Span.current();
-        } catch (Exception e) {
-            log.error("Failed to get current span", e);
-            return Span.getInvalid();
-        }
+        return Span.current();
     }
-    
+
     /**
-     * 获取当前的追踪ID
+     * 获取当前追踪ID
      */
     public String getCurrentTraceId() {
-        try {
-            Span currentSpan = getCurrentSpan();
-            if (currentSpan.getSpanContext().isValid()) {
-                return currentSpan.getSpanContext().getTraceId();
-            }
-        } catch (Exception e) {
-            log.error("Failed to get current trace ID", e);
+        Span currentSpan = getCurrentSpan();
+        if (currentSpan != null && !currentSpan.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
+            return currentSpan.getSpanContext().getTraceId();
         }
-        return "";
+        return null;
     }
-    
+
     /**
-     * 获取当前的SpanID
+     * 获取当前SpanID
      */
     public String getCurrentSpanId() {
-        try {
-            Span currentSpan = getCurrentSpan();
-            if (currentSpan.getSpanContext().isValid()) {
-                return currentSpan.getSpanContext().getSpanId();
-            }
-        } catch (Exception e) {
-            log.error("Failed to get current span ID", e);
+        Span currentSpan = getCurrentSpan();
+        if (currentSpan != null && !currentSpan.getSpanContext().equals(Span.getInvalid().getSpanContext())) {
+            return currentSpan.getSpanContext().getSpanId();
         }
-        return "";
+        return null;
     }
     
     /**
      * 检查是否在追踪上下文中
      */
     public boolean isInTracingContext() {
-        try {
-            return getCurrentSpan().getSpanContext().isValid();
-        } catch (Exception e) {
-            return false;
-        }
+        Span currentSpan = getCurrentSpan();
+        return currentSpan != null && !currentSpan.getSpanContext().equals(Span.getInvalid().getSpanContext());
     }
     
     /**
@@ -304,25 +282,27 @@ public class TracingManager {
     }
     
     /**
-     * 清理活跃的Span缓存
+     * 清理所有活跃Span
      */
     public void cleanupActiveSpans() {
-        try {
-            activeSpans.clear();
-            log.debug("Cleaned up active spans cache");
-        } catch (Exception e) {
-            log.error("Failed to cleanup active spans", e);
-        }
+        activeSpans.values().forEach(this::finishSpan);
+        activeSpans.clear();
+        log.info("清理所有活跃Span完成");
     }
     
     /**
      * 添加默认标签
      */
     private void addDefaultTags(SpanBuilder spanBuilder) {
-        if (tracingConfig != null) {
-            spanBuilder.setAttribute("service.name", tracingConfig.getServiceName());
-            spanBuilder.setAttribute("service.version", tracingConfig.getServiceVersion());
-        }
-        spanBuilder.setAttribute("timestamp", Instant.now().toString());
+        // 添加服务信息
+        spanBuilder.setAttribute("service.name", tracingConfig.getServiceName());
+        spanBuilder.setAttribute("service.version", tracingConfig.getResource().getServiceVersion());
+        spanBuilder.setAttribute("deployment.environment", tracingConfig.getResource().getEnvironment());
+        
+        // 添加自定义标签
+        tracingConfig.getTags().forEach(spanBuilder::setAttribute);
+        
+        // 添加资源属性
+        tracingConfig.getResource().getAttributes().forEach(spanBuilder::setAttribute);
     }
 }

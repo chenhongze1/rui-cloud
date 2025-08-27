@@ -1,6 +1,6 @@
 package com.rui.common.monitoring;
 
-import com.rui.common.monitoring.config.MonitoringConfig;
+import com.rui.common.core.config.MonitoringConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

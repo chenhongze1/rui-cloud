@@ -1,4 +1,4 @@
-package com.rui.common.core.config;
+package com.rui.common.tracing;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
