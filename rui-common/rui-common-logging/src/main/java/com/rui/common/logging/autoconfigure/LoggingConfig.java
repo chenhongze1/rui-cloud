@@ -1,4 +1,4 @@
-package com.rui.common.logging.config;
+package com.rui.common.logging.autoconfigure;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

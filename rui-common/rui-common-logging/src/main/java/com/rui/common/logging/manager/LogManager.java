@@ -1,8 +1,8 @@
-package com.rui.common.logging;
+package com.rui.common.logging.manager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rui.common.logging.config.LoggingConfig;
+import com.rui.common.logging.autoconfigure.LoggingConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;

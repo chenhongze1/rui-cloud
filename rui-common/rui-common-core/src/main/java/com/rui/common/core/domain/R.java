@@ -1,6 +1,5 @@
 package com.rui.common.core.domain;
 
-import com.alibaba.fastjson2.JSON;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -190,10 +189,5 @@ public class R<T> implements Serializable {
         }
         this.extra.put(key, value);
         return (R) this;
-    }
-
-    @Override
-    public String toString() {
-        return JSON.toJSONString(this);
     }
 }

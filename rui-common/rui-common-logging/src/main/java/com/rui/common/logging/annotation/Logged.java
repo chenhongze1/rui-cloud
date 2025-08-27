@@ -1,4 +1,4 @@
-package com.rui.common.logging;
+package com.rui.common.logging.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

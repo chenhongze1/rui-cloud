@@ -1,8 +1,8 @@
-package com.rui.common.logging.config;
+package com.rui.common.logging.autoconfigure;
 
-import com.rui.common.logging.LogManager;
-import com.rui.common.logging.LoggingAspect;
-import com.rui.common.logging.LoggingInterceptor;
+import com.rui.common.logging.manager.LogManager;
+import com.rui.common.logging.aspect.LoggingAspect;
+import com.rui.common.logging.interceptor.LoggingInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
