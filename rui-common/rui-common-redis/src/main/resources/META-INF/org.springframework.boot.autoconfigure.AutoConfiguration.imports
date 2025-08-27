@@ -1,1 +1,1 @@
-com.rui.common.redis.RedisOptimizationAutoConfiguration
+com.rui.common.redis.autoconfigure.RedisOptimizationAutoConfiguration

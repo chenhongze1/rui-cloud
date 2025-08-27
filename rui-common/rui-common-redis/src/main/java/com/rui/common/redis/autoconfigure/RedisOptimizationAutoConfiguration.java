@@ -1,6 +1,9 @@
-package com.rui.common.redis;
+package com.rui.common.redis.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rui.common.redis.pool.RedisPoolConfig;
+import com.rui.common.redis.pool.RedisPoolManager;
+import com.rui.common.redis.optimization.RedisPerformanceOptimizer;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;

@@ -1,4 +1,4 @@
-package com.rui.common.redis;
+package com.rui.common.redis.pool;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;

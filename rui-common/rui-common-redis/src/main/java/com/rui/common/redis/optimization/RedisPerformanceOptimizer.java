@@ -1,6 +1,7 @@
-package com.rui.common.redis;
+package com.rui.common.redis.optimization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rui.common.redis.pool.RedisPoolConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
