@@ -1,4 +1,4 @@
-package com.rui.common.monitoring.config;
+package com.rui.common.monitoring.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 监控配置类
+ * 监控配置属性类
  * 统一管理各模块的监控配置
  *
  * @author rui
@@ -17,7 +17,7 @@ import java.util.Map;
 @Data
 @Component
 @ConfigurationProperties(prefix = "rui.monitoring")
-public class MonitoringConfig {
+public class MonitoringProperties {
 
     /**
      * 是否启用监控
@@ -238,6 +238,10 @@ public class MonitoringConfig {
         private double warningThreshold = 0.8; // 80%
         private double errorThreshold = 0.9;   // 90%
         private String path = "/";
+        
+        public double getThreshold() {
+            return warningThreshold;
+        }
     }
 
     /**
@@ -248,6 +252,15 @@ public class MonitoringConfig {
         private boolean enabled = true;
         private double warningThreshold = 0.8; // 80%
         private double errorThreshold = 0.9;   // 90%
+        private double nonHeapThreshold = 0.8; // 80%
+        
+        public double getNonHeapThreshold() {
+            return nonHeapThreshold;
+        }
+        
+        public double getHeapThreshold() {
+            return warningThreshold;
+        }
     }
 
     /**

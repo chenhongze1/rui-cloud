@@ -1,6 +1,6 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.health;
 
-import com.rui.common.monitoring.config.MonitoringConfig;
+import com.rui.common.monitoring.properties.MonitoringProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.*;
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class HealthChecker {
 
-    private final MonitoringConfig monitoringConfig;
+    private final MonitoringProperties monitoringProperties;
     private final DataSource dataSource;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -40,7 +40,7 @@ public class HealthChecker {
      * 执行全面健康检查
      */
     public Health checkOverallHealth() {
-        if (!monitoringConfig.isEnabled() || !monitoringConfig.getHealth().isEnabled()) {
+        if (!monitoringProperties.isEnabled() || !monitoringProperties.getHealth().isEnabled()) {
             return Health.up().withDetail("monitoring", "disabled").build();
         }
 
@@ -49,7 +49,7 @@ public class HealthChecker {
         boolean hasDown = false;
 
         // 检查数据库健康状态
-        if (monitoringConfig.getHealth().getEnabledCheckers().contains("database")) {
+        if (monitoringProperties.getHealth().getEnabledCheckers().contains("database")) {
             Health dbHealth = checkDatabaseHealth();
             healthResults.put("database", dbHealth);
             if (dbHealth.getStatus() == Status.DOWN) {
@@ -58,7 +58,7 @@ public class HealthChecker {
         }
 
         // 检查Redis健康状态
-        if (monitoringConfig.getHealth().getEnabledCheckers().contains("redis")) {
+        if (monitoringProperties.getHealth().getEnabledCheckers().contains("redis")) {
             Health redisHealth = checkRedisHealth();
             healthResults.put("redis", redisHealth);
             if (redisHealth.getStatus() == Status.DOWN) {
@@ -67,7 +67,7 @@ public class HealthChecker {
         }
 
         // 检查磁盘健康状态
-        if (monitoringConfig.getHealth().getEnabledCheckers().contains("disk")) {
+        if (monitoringProperties.getHealth().getEnabledCheckers().contains("disk")) {
             Health diskHealth = checkDiskHealth();
             healthResults.put("disk", diskHealth);
             if (diskHealth.getStatus() == Status.DOWN) {
@@ -76,7 +76,7 @@ public class HealthChecker {
         }
 
         // 检查内存健康状态
-        if (monitoringConfig.getHealth().getEnabledCheckers().contains("memory")) {
+        if (monitoringProperties.getHealth().getEnabledCheckers().contains("memory")) {
             Health memoryHealth = checkMemoryHealth();
             healthResults.put("memory", memoryHealth);
             if (memoryHealth.getStatus() == Status.DOWN) {
@@ -85,7 +85,7 @@ public class HealthChecker {
         }
 
         // 检查自定义健康状态
-        if (monitoringConfig.getHealth().getEnabledCheckers().contains("custom")) {
+        if (monitoringProperties.getHealth().getEnabledCheckers().contains("custom")) {
             Health customHealth = checkCustomHealth();
             healthResults.put("custom", customHealth);
             if (customHealth.getStatus() == Status.DOWN) {
@@ -109,7 +109,7 @@ public class HealthChecker {
      * 检查数据库健康状态
      */
     public Health checkDatabaseHealth() {
-        MonitoringConfig.DatabaseHealthConfig dbConfig = monitoringConfig.getHealth().getDatabase();
+        MonitoringProperties.DatabaseHealthConfig dbConfig = monitoringProperties.getHealth().getDatabase();
         if (!dbConfig.isEnabled()) {
             return Health.up().withDetail("status", "disabled").build();
         }
@@ -154,7 +154,7 @@ public class HealthChecker {
      * 检查Redis健康状态
      */
     public Health checkRedisHealth() {
-        MonitoringConfig.RedisHealthConfig redisConfig = monitoringConfig.getHealth().getRedis();
+        MonitoringProperties.RedisHealthConfig redisConfig = monitoringProperties.getHealth().getRedis();
         if (!redisConfig.isEnabled()) {
             return Health.up().withDetail("status", "disabled").build();
         }
@@ -204,7 +204,7 @@ public class HealthChecker {
      * 检查磁盘健康状态
      */
     public Health checkDiskHealth() {
-        MonitoringConfig.DiskHealthConfig diskConfig = monitoringConfig.getHealth().getDisk();
+        MonitoringProperties.DiskHealthConfig diskConfig = monitoringProperties.getHealth().getDisk();
         if (!diskConfig.isEnabled()) {
             return Health.up().withDetail("status", "disabled").build();
         }
@@ -245,7 +245,7 @@ public class HealthChecker {
      * 检查内存健康状态
      */
     public Health checkMemoryHealth() {
-        MonitoringConfig.MemoryHealthConfig memoryConfig = monitoringConfig.getHealth().getMemory();
+        MonitoringProperties.MemoryHealthConfig memoryConfig = monitoringProperties.getHealth().getMemory();
         if (!memoryConfig.isEnabled()) {
             return Health.up().withDetail("status", "disabled").build();
         }

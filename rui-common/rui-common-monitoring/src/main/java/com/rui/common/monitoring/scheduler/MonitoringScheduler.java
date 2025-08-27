@@ -1,6 +1,8 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.scheduler;
 
-import com.rui.common.monitoring.config.MonitoringConfig;
+import com.rui.common.monitoring.properties.MonitoringProperties;
+import com.rui.common.monitoring.metrics.MetricsCollector;
+import com.rui.common.monitoring.health.HealthChecker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.Health;
@@ -25,7 +27,7 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 public class MonitoringScheduler {
 
-    private final MonitoringConfig monitoringConfig;
+    private final MonitoringProperties monitoringProperties;
     private final MetricsCollector metricsCollector;
     private final HealthChecker healthChecker;
     
@@ -35,7 +37,7 @@ public class MonitoringScheduler {
     public void init() {
         // 创建线程池用于异步执行监控任务
         this.executorService = Executors.newFixedThreadPool(
-            monitoringConfig.getMetrics().getThreadPoolSize()
+            monitoringProperties.getMetrics().getThreadPoolSize()
         );
         log.info("监控任务调度器初始化完成");
     }
@@ -46,7 +48,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(fixedRate = 30000)
     public void collectJvmMetrics() {
-        if (!monitoringConfig.getMetrics().isJvmEnabled()) {
+        if (!monitoringProperties.getMetrics().isJvmEnabled()) {
             return;
         }
         
@@ -66,7 +68,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(fixedRate = 60000)
     public void collectSystemMetrics() {
-        if (!monitoringConfig.getMetrics().isSystemEnabled()) {
+        if (!monitoringProperties.getMetrics().isSystemEnabled()) {
             return;
         }
         
@@ -86,7 +88,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(fixedRate = 120000)
     public void performHealthCheck() {
-        if (!monitoringConfig.getHealth().isEnabled()) {
+        if (!monitoringProperties.getHealth().isEnabled()) {
             return;
         }
         
@@ -137,7 +139,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void generateDailyReport() {
-        if (!monitoringConfig.getAlert().isEnabled()) {
+        if (!monitoringProperties.getAlert().isEnabled()) {
             return;
         }
         
@@ -157,7 +159,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(fixedRate = 300000)
     public void checkSlowOperations() {
-        if (!monitoringConfig.getPerformance().isSlowOperationEnabled()) {
+        if (!monitoringProperties.getPerformance().isSlowOperationEnabled()) {
             return;
         }
         
@@ -177,7 +179,7 @@ public class MonitoringScheduler {
      */
     @Scheduled(fixedRate = 180000)
     public void checkResourceUsage() {
-        if (!monitoringConfig.getPerformance().isResourceUsageEnabled()) {
+        if (!monitoringProperties.getPerformance().isResourceUsageEnabled()) {
             return;
         }
         
@@ -221,7 +223,7 @@ public class MonitoringScheduler {
      * 检查并报告慢操作
      */
     private void checkAndReportSlowOperations() {
-        long threshold = monitoringConfig.getPerformance().getSlowOperationThreshold().toMillis();
+        long threshold = monitoringProperties.getPerformance().getSlowOperationThreshold().toMillis();
         
         // 检查各种操作的执行时间
         // 如果超过阈值，记录并可能发送告警

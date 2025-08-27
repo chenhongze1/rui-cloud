@@ -1,6 +1,6 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.alert;
 
-import com.rui.common.core.config.MonitoringConfig;
+import com.rui.common.monitoring.properties.MonitoringProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class AlertRuleEngine {
 
-    private final MonitoringConfig monitoringConfig;
+    private final MonitoringProperties monitoringProperties;
     private final AlertManager alertManager;
     
     // 规则状态缓存
@@ -32,9 +32,9 @@ public class AlertRuleEngine {
      * 检查CPU使用率规则
      */
     public void checkCpuUsageRule(double cpuUsage) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("cpu_usage".equals(rule.getMetric())) {
                 checkRule(rule, cpuUsage, "CPU使用率", 
                     value -> value > rule.getThreshold());
@@ -46,9 +46,9 @@ public class AlertRuleEngine {
      * 检查内存使用率规则
      */
     public void checkMemoryUsageRule(double memoryUsage) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("memory_usage".equals(rule.getMetric())) {
                 checkRule(rule, memoryUsage, "内存使用率", 
                     value -> value > rule.getThreshold());
@@ -60,9 +60,9 @@ public class AlertRuleEngine {
      * 检查磁盘使用率规则
      */
     public void checkDiskUsageRule(double diskUsage) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("disk_usage".equals(rule.getMetric())) {
                 checkRule(rule, diskUsage, "磁盘使用率", 
                     value -> value > rule.getThreshold());
@@ -74,9 +74,9 @@ public class AlertRuleEngine {
      * 检查响应时间规则
      */
     public void checkResponseTimeRule(double responseTime) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("response_time".equals(rule.getMetric())) {
                 checkRule(rule, responseTime, "响应时间", 
                     value -> value > rule.getThreshold());
@@ -88,9 +88,9 @@ public class AlertRuleEngine {
      * 检查错误率规则
      */
     public void checkErrorRateRule(double errorRate) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("error_rate".equals(rule.getMetric())) {
                 checkRule(rule, errorRate, "错误率", 
                     value -> value > rule.getThreshold());
@@ -102,9 +102,9 @@ public class AlertRuleEngine {
      * 检查数据库连接数规则
      */
     public void checkDatabaseConnectionRule(int connectionCount) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("database_connections".equals(rule.getMetric())) {
                 checkRule(rule, connectionCount, "数据库连接数", 
                     value -> value > rule.getThreshold());
@@ -116,9 +116,9 @@ public class AlertRuleEngine {
      * 检查Redis连接数规则
      */
     public void checkRedisConnectionRule(int connectionCount) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("redis_connections".equals(rule.getMetric())) {
                 checkRule(rule, connectionCount, "Redis连接数", 
                     value -> value > rule.getThreshold());
@@ -130,9 +130,9 @@ public class AlertRuleEngine {
      * 检查活跃用户数规则
      */
     public void checkActiveUserRule(int activeUserCount) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if ("active_users".equals(rule.getMetric())) {
                 checkRule(rule, activeUserCount, "活跃用户数", 
                     value -> value > rule.getThreshold());
@@ -144,9 +144,9 @@ public class AlertRuleEngine {
      * 检查业务指标规则
      */
     public void checkBusinessMetricRule(String metricName, double value) {
-        List<MonitoringConfig.AlertRule> rules = monitoringConfig.getAlert().getRules();
+        List<MonitoringProperties.AlertRule> rules = monitoringProperties.getAlert().getRules();
         
-        for (MonitoringConfig.AlertRule rule : rules) {
+        for (MonitoringProperties.AlertRule rule : rules) {
             if (metricName.equals(rule.getMetric())) {
                 checkRule(rule, value, metricName, 
                     val -> evaluateCondition(val, rule.getCondition(), rule.getThreshold()));
@@ -157,7 +157,7 @@ public class AlertRuleEngine {
     /**
      * 通用规则检查方法
      */
-    private void checkRule(MonitoringConfig.AlertRule rule, double currentValue, 
+    private void checkRule(MonitoringProperties.AlertRule rule, double currentValue, 
                           String metricDisplayName, Predicate<Double> condition) {
         try {
             String ruleKey = rule.getName();
@@ -191,7 +191,7 @@ public class AlertRuleEngine {
     /**
      * 发送规则告警
      */
-    private void sendRuleAlert(MonitoringConfig.AlertRule rule, double currentValue, String metricDisplayName) {
+    private void sendRuleAlert(MonitoringProperties.AlertRule rule, double currentValue, String metricDisplayName) {
         AlertManager.AlertLevel level = AlertManager.AlertLevel.valueOf(rule.getLevel().toUpperCase());
         
         String title = String.format("%s告警", metricDisplayName);

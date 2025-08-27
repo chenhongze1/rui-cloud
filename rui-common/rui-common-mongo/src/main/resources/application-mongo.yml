@@ -1,0 +1,118 @@
+# MongoDB配置模板
+rui:
+  mongo:
+    # 是否启用MongoDB模块
+    enabled: true
+    
+    # 审计配置
+    audit:
+      # 是否启用审计功能
+      enabled: true
+      # 创建时间字段名
+      create-time-field: createTime
+      # 更新时间字段名
+      update-time-field: updateTime
+      # 创建人字段名
+      create-by-field: createBy
+      # 更新人字段名
+      update-by-field: updateBy
+      # 版本字段名
+      version-field: version
+      # 是否启用乐观锁
+      optimistic-locking: true
+    
+    # 分页配置
+    page:
+      # 默认页大小
+      default-page-size: 20
+      # 最大页大小
+      max-page-size: 1000
+      # 页码参数名
+      page-parameter: page
+      # 页大小参数名
+      size-parameter: size
+      # 排序参数名
+      sort-parameter: sort
+      # 分页合理化
+      reasonable: true
+    
+    # 索引配置
+    index:
+      # 是否自动创建索引
+      auto-create-index: true
+      # 创建索引超时时间(秒)
+      create-timeout: 30
+      # 启动时检查索引
+      check-on-startup: true
+    
+    # 事务配置
+    transaction:
+      # 是否启用事务
+      enabled: false
+      # 事务超时时间(秒)
+      timeout: 30
+      # 事务隔离级别
+      isolation: READ_COMMITTED
+      # 事务传播行为
+      propagation: REQUIRED
+
+# Spring Data MongoDB配置
+spring:
+  data:
+    mongodb:
+      # 数据库名称
+      database: rui_db
+      # 连接URI (优先级高于host/port)
+      # uri: mongodb://username:password@localhost:27017/rui_db?authSource=admin
+      
+      # 主机地址
+      host: localhost
+      # 端口号
+      port: 27017
+      # 用户名
+      username: 
+      # 密码
+      password: 
+      # 认证数据库
+      authentication-database: admin
+      
+      # 连接池配置
+      options:
+        # 最小连接数
+        min-connections-per-host: 5
+        # 最大连接数
+        connections-per-host: 100
+        # 连接超时时间(毫秒)
+        connect-timeout: 10000
+        # 读取超时时间(毫秒)
+        socket-timeout: 30000
+        # 最大等待时间(毫秒)
+        max-wait-time: 120000
+        # 最大连接空闲时间(毫秒)
+        max-connection-idle-time: 60000
+        # 最大连接生存时间(毫秒)
+        max-connection-life-time: 600000
+        # 心跳频率(毫秒)
+        heartbeat-frequency: 10000
+        # 最小心跳频率(毫秒)
+        min-heartbeat-frequency: 500
+        # 服务器选择超时时间(毫秒)
+        server-selection-timeout: 30000
+        # 本地阈值(毫秒)
+        local-threshold: 15
+        
+      # 字段命名策略
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+      
+      # 自动索引创建
+      auto-index-creation: true
+      
+      # UUID表示
+      uuid-representation: standard
+
+# 日志配置
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG
+    com.mongodb: DEBUG
+    com.rui.common.mongo: DEBUG

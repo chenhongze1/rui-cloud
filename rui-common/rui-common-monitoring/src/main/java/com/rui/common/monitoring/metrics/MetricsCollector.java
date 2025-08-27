@@ -1,6 +1,6 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.metrics;
 
-import com.rui.common.monitoring.config.MonitoringConfig;
+import com.rui.common.monitoring.properties.MonitoringProperties;
 import io.micrometer.core.instrument.*;
 import io.micrometer.core.instrument.binder.jvm.*;
 import io.micrometer.core.instrument.binder.system.*;
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 public class MetricsCollector {
 
     private final MeterRegistry meterRegistry;
-    private final MonitoringConfig monitoringConfig;
+    private final MonitoringProperties monitoringProperties;
     
     public MeterRegistry getMeterRegistry() {
         return meterRegistry;
@@ -57,7 +57,7 @@ public class MetricsCollector {
 
     @PostConstruct
     public void initializeMetrics() {
-        if (!monitoringConfig.isEnabled() || !monitoringConfig.getMetrics().isEnabled()) {
+        if (!monitoringProperties.isEnabled() || !monitoringProperties.getMetrics().isEnabled()) {
             log.info("监控指标收集已禁用");
             return;
         }
@@ -92,7 +92,7 @@ public class MetricsCollector {
      * 注册JVM指标
      */
     private void registerJvmMetrics() {
-        MonitoringConfig.JvmMetricsConfig jvmConfig = monitoringConfig.getMetrics().getJvm();
+        MonitoringProperties.JvmMetricsConfig jvmConfig = monitoringProperties.getMetrics().getJvm();
         if (!jvmConfig.isEnabled()) {
             return;
         }
@@ -161,7 +161,7 @@ public class MetricsCollector {
      * 注册HTTP指标
      */
     private void registerHttpMetrics() {
-        MonitoringConfig.HttpMetricsConfig httpConfig = monitoringConfig.getMetrics().getHttp();
+        MonitoringProperties.HttpMetricsConfig httpConfig = monitoringProperties.getMetrics().getHttp();
         if (!httpConfig.isEnabled()) {
             return;
         }
@@ -198,7 +198,7 @@ public class MetricsCollector {
      * 注册数据库指标
      */
     private void registerDatabaseMetrics() {
-        MonitoringConfig.DatabaseMetricsConfig dbConfig = monitoringConfig.getMetrics().getDatabase();
+        MonitoringProperties.DatabaseMetricsConfig dbConfig = monitoringProperties.getMetrics().getDatabase();
         if (!dbConfig.isEnabled()) {
             return;
         }
@@ -238,7 +238,7 @@ public class MetricsCollector {
      * 注册Redis指标
      */
     private void registerRedisMetrics() {
-        MonitoringConfig.RedisMetricsConfig redisConfig = monitoringConfig.getMetrics().getRedis();
+        MonitoringProperties.RedisMetricsConfig redisConfig = monitoringProperties.getMetrics().getRedis();
         if (!redisConfig.isEnabled()) {
             return;
         }
@@ -287,7 +287,7 @@ public class MetricsCollector {
      * 注册业务指标
      */
     private void registerBusinessMetrics() {
-        MonitoringConfig.BusinessConfig businessConfig = monitoringConfig.getBusiness();
+        MonitoringProperties.BusinessConfig businessConfig = monitoringProperties.getBusiness();
         if (!businessConfig.isEnabled()) {
             return;
         }

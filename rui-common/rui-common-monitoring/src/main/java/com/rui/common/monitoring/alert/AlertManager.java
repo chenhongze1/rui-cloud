@@ -1,6 +1,6 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.alert;
 
-import com.rui.common.core.config.MonitoringConfig;
+import com.rui.common.monitoring.properties.MonitoringProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AlertManager {
 
-    private final MonitoringConfig monitoringConfig;
+    private final MonitoringProperties monitoringProperties;
     
     // 告警抑制缓存，防止重复告警
     private final Map<String, LocalDateTime> alertSuppressionCache = new ConcurrentHashMap<>();
@@ -94,7 +94,7 @@ public class AlertManager {
      * 实际发送告警
      */
     private void doSendAlert(AlertLevel level, String title, String message, Map<String, Object> context) {
-        MonitoringConfig.AlertConfig alertConfig = monitoringConfig.getAlert();
+        MonitoringProperties.AlertConfig alertConfig = monitoringProperties.getAlert();
         
         // 构建告警内容
         String alertContent = buildAlertContent(level, title, message, context);
@@ -142,7 +142,7 @@ public class AlertManager {
     /**
      * 发送邮件告警
      */
-    private void sendEmailAlert(String content, MonitoringConfig.EmailConfig emailConfig) {
+    private void sendEmailAlert(String content, MonitoringProperties.EmailConfig emailConfig) {
         try {
             // 这里实现邮件发送逻辑
             log.info("发送邮件告警到: {}", emailConfig.getRecipients());
@@ -158,7 +158,7 @@ public class AlertManager {
     /**
      * 发送短信告警
      */
-    private void sendSmsAlert(String content, MonitoringConfig.SmsConfig smsConfig) {
+    private void sendSmsAlert(String content, MonitoringProperties.SmsConfig smsConfig) {
         try {
             // 这里实现短信发送逻辑
             log.info("发送短信告警到: {}", smsConfig.getPhoneNumbers());
@@ -174,7 +174,7 @@ public class AlertManager {
     /**
      * 发送Webhook告警
      */
-    private void sendWebhookAlert(String content, MonitoringConfig.WebhookConfig webhookConfig) {
+    private void sendWebhookAlert(String content, MonitoringProperties.WebhookConfig webhookConfig) {
         try {
             // 这里实现Webhook发送逻辑
             log.info("发送Webhook告警到: {}", webhookConfig.getUrl());
@@ -190,7 +190,7 @@ public class AlertManager {
     /**
      * 发送钉钉告警
      */
-    private void sendDingTalkAlert(String content, MonitoringConfig.DingTalkConfig dingTalkConfig) {
+    private void sendDingTalkAlert(String content, MonitoringProperties.DingTalkConfig dingTalkConfig) {
         try {
             // 这里实现钉钉机器人发送逻辑
             log.info("发送钉钉告警到: {}", dingTalkConfig.getWebhook());
@@ -219,7 +219,7 @@ public class AlertManager {
             return false;
         }
         
-        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getCooldownPeriod().toMinutes();
+        long suppressionMinutes = monitoringProperties.getAlert().getSuppression().getCooldownPeriod().toMinutes();
         return lastAlertTime.plusMinutes(suppressionMinutes).isAfter(LocalDateTime.now());
     }
 
@@ -240,7 +240,7 @@ public class AlertManager {
      */
     private void cleanupExpiredSuppressions() {
         LocalDateTime now = LocalDateTime.now();
-        long suppressionMinutes = monitoringConfig.getAlert().getSuppression().getCooldownPeriod().toMinutes();
+        long suppressionMinutes = monitoringProperties.getAlert().getSuppression().getCooldownPeriod().toMinutes();
         
         alertSuppressionCache.entrySet().removeIf(entry -> 
             entry.getValue().plusMinutes(suppressionMinutes).isBefore(now)

@@ -1,0 +1,7 @@
+# Spring Boot Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.rui.common.tracing.config.TracingAutoConfiguration
+
+# Spring Boot Configuration Properties
+org.springframework.boot.autoconfigure.ConfigurationPropertiesBinding=\
+com.rui.common.tracing.config.TracingProperties

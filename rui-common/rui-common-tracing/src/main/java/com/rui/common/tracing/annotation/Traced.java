@@ -1,4 +1,4 @@
-package com.rui.common.tracing;
+package com.rui.common.tracing.annotation;
 
 import io.opentelemetry.api.trace.SpanKind;
 

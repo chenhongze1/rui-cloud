@@ -1,0 +1,170 @@
+# 链路追踪配置
+rui:
+  tracing:
+    # 是否启用链路追踪
+    enabled: true
+    
+    # 服务信息
+    service-name: ${spring.application.name:unknown-service}
+    service-version: ${spring.application.version:1.0.0}
+    
+    # 采样配置
+    sampling:
+      # 采样率 (0.0-1.0)
+      rate: 1.0
+      # 采样类型: ratio, rate_limiting, parent_based
+      type: ratio
+      # 限流采样每秒最大Span数
+      max-spans-per-second: 100
+    
+    # 导出配置
+    export:
+      # 导出类型: jaeger, zipkin, otlp, logging, none
+      type: logging
+      # 导出端点
+      endpoint: http://localhost:14268/api/traces
+      # 批处理配置
+      batch:
+        # 批处理大小
+        size: 512
+        # 批处理超时时间(毫秒)
+        timeout: 2000
+        # 最大导出超时时间(毫秒)
+        export-timeout: 30000
+        # 最大队列大小
+        max-queue-size: 2048
+    
+    # 资源配置
+    resource:
+      # 自定义资源属性
+      attributes:
+        deployment.environment: ${spring.profiles.active:development}
+        service.namespace: rui-framework
+        service.instance.id: ${random.uuid}
+    
+    # 传播配置
+    propagation:
+      # 传播类型: tracecontext, baggage, b3, jaeger, ottrace
+      types:
+        - tracecontext
+        - baggage
+        - b3
+    
+    # 自定义标签
+    tags:
+      application: ${spring.application.name:unknown}
+      version: ${spring.application.version:1.0.0}
+      environment: ${spring.profiles.active:development}
+    
+    # 忽略的URL模式
+    ignore-patterns:
+      - "/health"
+      - "/metrics"
+      - "/actuator/**"
+      - "/favicon.ico"
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+      - "/webjars/**"
+      - "/static/**"
+      - "/css/**"
+      - "/js/**"
+      - "/images/**"
+    
+    # 仪表化配置
+    instrumentation:
+      # HTTP客户端
+      http-client:
+        enabled: true
+        capture-headers: true
+        capture-request-body: false
+        capture-response-body: false
+      
+      # HTTP服务器
+      http-server:
+        enabled: true
+        capture-headers: true
+        capture-request-body: false
+        capture-response-body: false
+      
+      # 数据库
+      database:
+        enabled: true
+        capture-statement: true
+        capture-parameters: false
+      
+      # 缓存
+      cache:
+        enabled: true
+        capture-keys: true
+        capture-values: false
+      
+      # 消息队列
+      messaging:
+        enabled: true
+        capture-headers: true
+        capture-payload: false
+    
+    # 性能配置
+    performance:
+      # 慢请求阈值(毫秒)
+      slow-request-threshold: 1000
+      # 最大Span属性数量
+      max-span-attributes: 128
+      # 最大Span事件数量
+      max-span-events: 128
+      # 最大Span链接数量
+      max-span-links: 128
+      # 属性值最大长度
+      max-attribute-value-length: 1024
+
+# OpenTelemetry配置
+otel:
+  # SDK配置
+  sdk:
+    disabled: false
+  
+  # 资源配置
+  resource:
+    attributes:
+      service.name: ${rui.tracing.service-name}
+      service.version: ${rui.tracing.service-version}
+  
+  # 追踪配置
+  traces:
+    exporter: ${rui.tracing.export.type}
+  
+  # 指标配置
+  metrics:
+    exporter: none
+  
+  # 日志配置
+  logs:
+    exporter: none
+
+# 日志配置
+logging:
+  pattern:
+    # 在日志中包含追踪信息
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  level:
+    # 追踪相关日志级别
+    com.rui.common.tracing: DEBUG
+    io.opentelemetry: INFO
+    io.jaegertracing: INFO
+    zipkin2: INFO
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,tracing
+  endpoint:
+    health:
+      show-details: always
+    tracing:
+      enabled: true
+  tracing:
+    sampling:
+      probability: ${rui.tracing.sampling.rate}

@@ -1,4 +1,4 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.health;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

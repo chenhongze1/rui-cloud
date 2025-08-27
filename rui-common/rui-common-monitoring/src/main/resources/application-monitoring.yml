@@ -1,0 +1,291 @@
+# RUI Cloud 监控模块配置
+# 提供监控、指标收集、健康检查、告警等功能的默认配置
+
+rui:
+  monitoring:
+    # 是否启用监控功能
+    enabled: true
+    
+    # 指标收集配置
+    metrics:
+      enabled: true
+      # 指标导出间隔（秒）
+      export-interval: 30s
+      # 指标保留期（天）
+      retention-period: 7d
+      # 公共标签
+      common-tags:
+        application: ${spring.application.name:unknown}
+        environment: ${spring.profiles.active:dev}
+        version: ${project.version:1.0.0}
+      # 启用的指标类型
+      enabled-metrics:
+        - jvm
+        - system
+        - http
+        - database
+        - redis
+        - business
+      
+      # JVM指标配置
+      jvm:
+        enabled: true
+        memory-metrics: true
+        gc-metrics: true
+        thread-metrics: true
+        class-loader-metrics: true
+      
+      # HTTP指标配置
+      http:
+        enabled: true
+        request-metrics: true
+        response-metrics: true
+        error-metrics: true
+      
+      # 数据库指标配置
+      database:
+        enabled: true
+        connection-pool-metrics: true
+        query-metrics: true
+        slow-query-metrics: true
+        slow-query-threshold: 1s
+      
+      # Redis指标配置
+      redis:
+        enabled: true
+        connection-metrics: true
+        command-metrics: true
+        keyspace-metrics: true
+        memory-metrics: true
+    
+    # 健康检查配置
+    health:
+      enabled: true
+      # 检查间隔（秒）
+      check-interval: 30s
+      # 超时时间（秒）
+      timeout: 10s
+      # 启用的检查器
+      enabled-checkers:
+        - database
+        - redis
+        - disk
+        - memory
+        - custom
+      
+      # 数据库健康检查
+      database:
+        enabled: true
+        validation-query: "SELECT 1"
+        timeout: 5s
+      
+      # Redis健康检查
+      redis:
+        enabled: true
+        timeout: 3s
+      
+      # 磁盘健康检查
+      disk:
+        enabled: true
+        warning-threshold: 0.8  # 80%
+        error-threshold: 0.9    # 90%
+        path: "/"
+      
+      # 内存健康检查
+      memory:
+        enabled: true
+        warning-threshold: 0.8  # 80%
+        error-threshold: 0.9    # 90%
+    
+    # 性能监控配置
+    performance:
+      enabled: true
+      
+      # 方法执行时间监控
+      method-timing:
+        enabled: true
+        included-packages:
+          - "com.rui"
+        excluded-packages:
+          - "com.rui.common.monitoring"
+        slow-threshold: 500ms
+      
+      # 慢操作监控
+      slow-operation:
+        enabled: true
+        http-request-threshold: 2s
+        database-query-threshold: 1s
+        redis-operation-threshold: 100ms
+      
+      # 资源使用监控
+      resource-usage:
+        enabled: true
+        sampling-interval: 10s
+        cpu-usage: true
+        memory-usage: true
+        disk-usage: true
+        network-usage: true
+    
+    # 业务监控配置
+    business:
+      enabled: true
+      
+      # 用户行为监控
+      user-behavior:
+        enabled: true
+        login-tracking: true
+        operation-tracking: true
+        page-view-tracking: true
+        session-timeout: 30m
+      
+      # 业务指标监控
+      business-metrics:
+        enabled: true
+        transaction-metrics: true
+        order-metrics: true
+        payment-metrics: true
+        custom-metrics: true
+      
+      # 错误监控
+      error-monitoring:
+        enabled: true
+        exception-tracking: true
+        error-rate-tracking: true
+        alert-on-high-error-rate: true
+        error-rate-threshold: 0.05  # 5%
+        error-rate-window: 5m
+    
+    # 告警配置
+    alert:
+      enabled: true
+      
+      # 告警规则（示例）
+      rules:
+        - name: "CPU使用率过高"
+          metric: "cpu_usage"
+          condition: ">"
+          threshold: 80.0
+          duration: 5m
+          severity: "warning"
+          consecutive-count: 3
+          description: "CPU使用率超过80%"
+          labels:
+            team: "ops"
+            priority: "high"
+        
+        - name: "内存使用率过高"
+          metric: "memory_usage"
+          condition: ">"
+          threshold: 85.0
+          duration: 3m
+          severity: "critical"
+          consecutive-count: 2
+          description: "内存使用率超过85%"
+          labels:
+            team: "ops"
+            priority: "critical"
+        
+        - name: "磁盘使用率过高"
+          metric: "disk_usage"
+          condition: ">"
+          threshold: 90.0
+          duration: 1m
+          severity: "critical"
+          consecutive-count: 1
+          description: "磁盘使用率超过90%"
+          labels:
+            team: "ops"
+            priority: "critical"
+        
+        - name: "响应时间过长"
+          metric: "response_time"
+          condition: ">"
+          threshold: 2000.0  # 2秒
+          duration: 2m
+          severity: "warning"
+          consecutive-count: 5
+          description: "平均响应时间超过2秒"
+          labels:
+            team: "dev"
+            priority: "medium"
+        
+        - name: "错误率过高"
+          metric: "error_rate"
+          condition: ">"
+          threshold: 5.0  # 5%
+          duration: 5m
+          severity: "critical"
+          consecutive-count: 3
+          description: "错误率超过5%"
+          labels:
+            team: "dev"
+            priority: "high"
+      
+      # 告警渠道配置
+      channels:
+        # 邮件告警
+        email:
+          enabled: false
+          recipients:
+            - "admin@example.com"
+            - "ops@example.com"
+          subject: "[RUI-Cloud] 监控告警"
+        
+        # 短信告警
+        sms:
+          enabled: false
+          phone-numbers:
+            - "13800138000"
+          template: "监控告警：{message}"
+        
+        # Webhook告警
+        webhook:
+          enabled: false
+          url: "https://hooks.slack.com/services/xxx/xxx/xxx"
+          headers:
+            Content-Type: "application/json"
+          timeout: 10s
+        
+        # 钉钉告警
+        ding-talk:
+          enabled: false
+          webhook: "https://oapi.dingtalk.com/robot/send?access_token=xxx"
+          secret: "xxx"
+          at-mobiles:
+            - "13800138000"
+          at-all: false
+      
+      # 告警抑制配置
+      suppression:
+        enabled: true
+        # 冷却期（分钟）
+        cooldown-period: 10m
+        # 每小时最大告警数
+        max-alerts-per-hour: 10
+        # 是否合并相似告警
+        group-similar-alerts: true
+
+# Spring Boot Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,custom-health,custom-metrics"
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      # 可以配置其他指标导出器，如Prometheus、InfluxDB等
+      simple:
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.rui.common.monitoring: INFO
+    # 开发环境可以设置为DEBUG
+    # com.rui.common.monitoring: DEBUG

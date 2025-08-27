@@ -1,4 +1,4 @@
-package com.rui.common.monitoring;
+package com.rui.common.monitoring.metrics;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
