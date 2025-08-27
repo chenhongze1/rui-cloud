@@ -1,9 +1,9 @@
-package com.rui.common.logging.aspect;
+package com.rui.common.log.aspect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rui.common.logging.annotation.Logged;
-import com.rui.common.logging.manager.LogManager;
+import com.rui.common.log.annotation.Logged;
+import com.rui.common.log.manager.LogManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

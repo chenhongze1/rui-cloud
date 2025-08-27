@@ -2,7 +2,10 @@ package com.rui.common.log.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rui.common.log.aspect.OperationLogAspect;
+import com.rui.common.log.aspect.LoggingAspect;
 import com.rui.common.log.filter.AccessLogFilter;
+import com.rui.common.log.interceptor.LoggingInterceptor;
+import com.rui.common.log.manager.LogManager;
 import com.rui.common.log.service.LogService;
 import com.rui.common.log.service.impl.LogServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,15 @@ public class LogAutoConfiguration {
     }
     
     /**
+     * 日志管理器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public LogManager logManager() {
+        return new LogManager(logProperties);
+    }
+    
+    /**
      * 操作日志切面
      */
     @Bean
@@ -51,6 +63,16 @@ public class LogAutoConfiguration {
     }
     
     /**
+     * 日志记录切面
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "rui.log.logging", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public LoggingAspect loggingAspect(LogManager logManager) {
+        return new LoggingAspect(logManager);
+    }
+    
+    /**
      * 访问日志过滤器
      */
     @Bean
@@ -58,6 +80,16 @@ public class LogAutoConfiguration {
     @ConditionalOnProperty(prefix = "rui.log.access-log", name = "enabled", havingValue = "true", matchIfMissing = true)
     public AccessLogFilter accessLogFilter(LogService logService, ObjectMapper objectMapper) {
         return new AccessLogFilter(logService, logProperties, objectMapper);
+    }
+    
+    /**
+     * 日志拦截器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "rui.log.interceptor", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public LoggingInterceptor loggingInterceptor(LogManager logManager) {
+        return new LoggingInterceptor(logProperties, logManager);
     }
     
     /**

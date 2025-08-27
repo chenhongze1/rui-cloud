@@ -33,6 +33,16 @@ public class LogProperties {
     private ErrorLogConfig errorLog = new ErrorLogConfig();
     
     /**
+     * 日志记录配置
+     */
+    private LoggingConfig logging = new LoggingConfig();
+    
+    /**
+     * 日志拦截器配置
+     */
+    private InterceptorConfig interceptor = new InterceptorConfig();
+    
+    /**
      * ELK配置
      */
     private ElkConfig elk = new ElkConfig();
@@ -188,5 +198,84 @@ public class LogProperties {
          * 自定义字段
          */
         private java.util.Map<String, String> customFields = new java.util.HashMap<>();
+    }
+    
+    /**
+     * 日志记录配置
+     */
+    @Data
+    public static class LoggingConfig {
+        
+        /**
+         * 是否启用日志记录
+         */
+        private Boolean enabled = true;
+        
+        /**
+         * 是否记录参数
+         */
+        private Boolean includeArgs = true;
+        
+        /**
+         * 是否记录返回值
+         */
+        private Boolean includeResult = true;
+        
+        /**
+         * 是否记录执行时间
+         */
+        private Boolean includeExecutionTime = true;
+        
+        /**
+         * 是否记录异常
+         */
+        private Boolean includeException = true;
+        
+        /**
+         * 慢日志阈值（毫秒）
+         */
+        private Long slowLogThreshold = 1000L;
+        
+        /**
+         * 参数最大长度
+         */
+        private Integer maxArgsLength = 1000;
+        
+        /**
+         * 返回值最大长度
+         */
+        private Integer maxResultLength = 1000;
+        
+        /**
+         * 敏感字段列表
+         */
+        private String[] sensitiveFields = {"password", "token", "secret", "key"};
+    }
+    
+    /**
+     * 拦截器配置
+     */
+    @Data
+    public static class InterceptorConfig {
+        
+        /**
+         * 是否启用拦截器
+         */
+        private Boolean enabled = true;
+        
+        /**
+         * 是否记录请求信息
+         */
+        private Boolean includeRequest = true;
+        
+        /**
+         * 是否记录响应信息
+         */
+        private Boolean includeResponse = true;
+        
+        /**
+         * 忽略的URL模式
+         */
+        private String[] ignorePatterns = {"/actuator/**", "/swagger-ui/**", "/v3/api-docs/**"};
     }
 }

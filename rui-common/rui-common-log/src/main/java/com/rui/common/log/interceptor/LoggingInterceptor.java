@@ -1,7 +1,7 @@
-package com.rui.common.logging.interceptor;
+package com.rui.common.log.interceptor;
 
-import com.rui.common.logging.autoconfigure.LoggingConfig;
-import com.rui.common.logging.manager.LogManager;
+import com.rui.common.log.config.LogProperties;
+import com.rui.common.log.manager.LogManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,7 +34,7 @@ import java.util.UUID;
 @ConditionalOnProperty(prefix = "rui.logging", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class LoggingInterceptor implements HandlerInterceptor {
 
-    private final LoggingConfig loggingConfig;
+    private final LogProperties logProperties;
     private final LogManager logManager;
     
     private static final String START_TIME_ATTRIBUTE = "startTime";

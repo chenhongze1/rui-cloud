@@ -1,8 +1,8 @@
-package com.rui.common.logging.manager;
+package com.rui.common.log.manager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rui.common.logging.autoconfigure.LoggingConfig;
+import com.rui.common.log.config.LogProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LogManager {
 
-    private final LoggingConfig loggingConfig;
+    private final LogProperties logProperties;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // 不同类型的日志记录器
@@ -52,7 +52,7 @@ public class LogManager {
      * 记录审计日志
      */
     public void audit(String operation, String resource, String result, Object details) {
-        if (!loggingConfig.getAudit().isEnabled()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -77,7 +77,7 @@ public class LogManager {
      * 记录性能日志
      */
     public void performance(String operation, long duration, Map<String, Object> metrics) {
-        if (!loggingConfig.getPerformance().isEnabled()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -111,7 +111,7 @@ public class LogManager {
      * 记录安全日志
      */
     public void security(String event, String level, String description, Object details) {
-        if (!loggingConfig.getSecurity().isEnabled()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -152,7 +152,7 @@ public class LogManager {
      * 记录业务日志
      */
     public void business(String module, String operation, String result, Object data) {
-        if (!loggingConfig.getBusiness().isEnabled()) {
+        if (!logProperties.getLogging().getEnabled()) {
             return;
         }
         
@@ -262,7 +262,7 @@ public class LogManager {
      * 清理敏感数据
      */
     private Object sanitizeData(Object data) {
-        if (!loggingConfig.getSensitive().isEnabled() || data == null) {
+        if (data == null) {
             return data;
         }
         
@@ -270,20 +270,11 @@ public class LogManager {
             String jsonString = objectMapper.writeValueAsString(data);
             
             // 替换敏感字段
-            for (String sensitiveField : loggingConfig.getSensitive().getSensitiveFields()) {
-                if (loggingConfig.getSensitive().isUseRegex()) {
-                    jsonString = jsonString.replaceAll(sensitiveField, loggingConfig.getSensitive().getReplacement());
-                } else {
-                    jsonString = jsonString.replaceAll(
-                        "\"" + sensitiveField + "\"\s*:\s*\"[^\"]*\"",
-                        "\"" + sensitiveField + "\":\"" + loggingConfig.getSensitive().getReplacement() + "\""
-                    );
-                }
-            }
-            
-            // 应用自定义正则表达式
-            for (String pattern : loggingConfig.getSensitive().getRegexPatterns()) {
-                jsonString = jsonString.replaceAll(pattern, loggingConfig.getSensitive().getReplacement());
+            for (String sensitiveField : logProperties.getLogging().getSensitiveFields()) {
+                jsonString = jsonString.replaceAll(
+                    "\"" + sensitiveField + "\"\\s*:\\s*\"[^\"]*\"",
+                    "\"" + sensitiveField + "\":\"***\""
+                );
             }
             
             return objectMapper.readValue(jsonString, Object.class);
