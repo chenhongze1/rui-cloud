@@ -1,4 +1,4 @@
-package com.rui.common.core.redis;
+package com.rui.common.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;

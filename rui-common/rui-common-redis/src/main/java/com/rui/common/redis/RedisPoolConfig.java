@@ -1,4 +1,4 @@
-package com.rui.common.core.redis;
+package com.rui.common.redis;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
