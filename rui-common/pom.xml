@@ -28,6 +28,11 @@
         <module>rui-common-mq</module>
         <module>rui-common-log</module>
         <module>rui-common-mongo</module>
+        <module>rui-common-monitoring</module>
+        <module>rui-common-tracing</module>
+        <module>rui-common-logging</module>
+        <module>rui-common-config</module>
+        <module>rui-common-utils</module>
     </modules>
 
 </project>
