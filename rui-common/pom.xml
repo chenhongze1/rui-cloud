@@ -31,7 +31,6 @@
         <module>rui-common-monitoring</module>
         <module>rui-common-tracing</module>
         <module>rui-common-config</module>
-        <module>rui-common-utils</module>
     </modules>
 
 </project>

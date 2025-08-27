@@ -1,4 +1,4 @@
-package com.rui.common.utils;
+package com.rui.common.core.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.util.StringUtils;

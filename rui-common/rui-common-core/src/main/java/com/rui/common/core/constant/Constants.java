@@ -141,5 +141,5 @@ public class Constants {
      * 定时任务违规的字符
      */
     public static final String[] JOB_ERROR_STR = {"java.net.URL", "javax.naming.InitialContext", "org.yaml.snakeyaml",
-            "org.springframework", "org.apache", "com.rui.common.utils.file", "com.rui.common.config"};
+            "org.springframework", "org.apache", "com.rui.common.core.utils.file", "com.rui.common.config"};
 }

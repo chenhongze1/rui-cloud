@@ -1,4 +1,4 @@
-package com.rui.common.utils;
+package com.rui.common.core.utils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;

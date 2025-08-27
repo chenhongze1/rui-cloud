@@ -1,4 +1,4 @@
-package com.rui.common.utils;
+package com.rui.common.core.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
