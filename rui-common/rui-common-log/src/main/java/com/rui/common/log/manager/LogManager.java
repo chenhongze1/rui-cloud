@@ -75,36 +75,13 @@ public class LogManager {
     
     /**
      * 记录性能日志
+     * @deprecated 性能监控功能已迁移到 rui-common-monitoring 模块，请使用 PerformanceMonitoringService
      */
+    @Deprecated
     public void performance(String operation, long duration, Map<String, Object> metrics) {
-        if (!logProperties.getLogging().getEnabled()) {
-            return;
-        }
-        
-        Map<String, Object> perfData = new HashMap<>();
-        perfData.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        perfData.put("operation", operation);
-        perfData.put("duration", duration);
-        perfData.put("traceId", MDC.get(TRACE_ID));
-        perfData.put("spanId", MDC.get(SPAN_ID));
-        
-        if (metrics != null) {
-            perfData.putAll(metrics);
-        }
-        
-        // 判断是否为慢操作
-        boolean isSlow = false;
-        if (operation.contains("sql") || operation.contains("query")) {
-            isSlow = duration > logProperties.getLogging().getSlowLogThreshold();
-        } else if (operation.contains("api") || operation.contains("http")) {
-            isSlow = duration > logProperties.getLogging().getSlowLogThreshold();
-        }
-        
-        if (isSlow) {
-            PERFORMANCE_LOGGER.warn("SLOW_OPERATION: " + formatStructuredLog(perfData));
-        } else {
-            PERFORMANCE_LOGGER.info(formatStructuredLog(perfData));
-        }
+        // 性能监控功能已迁移到 rui-common-monitoring 模块
+        // 此方法保留用于向后兼容，建议使用 @PerformanceMonitored 注解
+        log.warn("LogManager.performance() 方法已废弃，请使用 rui-common-monitoring 模块的性能监控功能");
     }
     
     /**

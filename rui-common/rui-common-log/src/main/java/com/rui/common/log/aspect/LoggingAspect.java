@@ -154,13 +154,9 @@ public class LoggingAspect {
                 break;
                 
             case PERFORMANCE:
-                Map<String, Object> perfMetrics = new HashMap<>();
-                perfMetrics.put("duration", duration);
-                perfMetrics.put("slow", isSlow);
-                if (logged.logParameters()) {
-                    perfMetrics.put("parameterCount", joinPoint.getArgs().length);
-                }
-                logManager.performance(operation, duration, perfMetrics);
+                // 性能监控功能已迁移到 rui-common-monitoring 模块
+                // 建议使用 @PerformanceMonitored 注解替代 @Logged(type = LogType.PERFORMANCE)
+                log.warn("@Logged(type = LogType.PERFORMANCE) 已废弃，请使用 rui-common-monitoring 模块的 @PerformanceMonitored 注解");
                 break;
                 
             case SECURITY:

@@ -8,6 +8,9 @@ import com.rui.common.monitoring.metrics.CustomMetricsEndpoint;
 import com.rui.common.monitoring.metrics.MetricsCollector;
 import com.rui.common.monitoring.properties.MonitoringProperties;
 import com.rui.common.monitoring.scheduler.MonitoringScheduler;
+import com.rui.common.monitoring.aspect.PerformanceMonitoringAspect;
+import com.rui.common.monitoring.service.PerformanceMonitoringService;
+import com.rui.common.monitoring.adapter.LogPerformanceAdapter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,5 +120,38 @@ public class MonitoringAutoConfiguration {
     public CustomHealthEndpoint customHealthEndpoint(HealthChecker healthChecker) {
         log.info("初始化自定义健康检查端点");
         return new CustomHealthEndpoint(healthChecker);
+    }
+
+    /**
+     * 性能监控切面
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public PerformanceMonitoringAspect performanceMonitoringAspect(MetricsCollector metricsCollector, 
+                                                                  MonitoringProperties monitoringProperties) {
+        log.info("初始化性能监控切面");
+        return new PerformanceMonitoringAspect(metricsCollector, monitoringProperties);
+    }
+
+    /**
+     * 性能监控服务
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public PerformanceMonitoringService performanceMonitoringService(MetricsCollector metricsCollector,
+                                                                    AlertManager alertManager,
+                                                                    MonitoringProperties monitoringProperties) {
+        log.info("初始化性能监控服务");
+        return new PerformanceMonitoringService(metricsCollector, alertManager, monitoringProperties);
+    }
+
+    /**
+     * 日志性能适配器
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public LogPerformanceAdapter logPerformanceAdapter(PerformanceMonitoringService performanceMonitoringService) {
+        log.info("初始化日志性能适配器");
+        return new LogPerformanceAdapter(performanceMonitoringService);
     }
 }

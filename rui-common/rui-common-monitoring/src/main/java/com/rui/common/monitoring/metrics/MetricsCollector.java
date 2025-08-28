@@ -546,4 +546,87 @@ public class MetricsCollector {
             .mapToLong(bean -> bean.getCollectionTime())
             .sum();
     }
+
+    /**
+     * 记录业务指标
+     */
+    public void recordBusinessMetric(String name, double value, String... tags) {
+        meterRegistry.gauge("business." + name, Tags.of(tags), value);
+    }
+    
+    /**
+     * 记录内存使用指标
+     */
+    public void recordMemoryUsage(long usedMemory) {
+        meterRegistry.gauge("method.memory.used", usedMemory);
+    }
+    
+    /**
+     * 记录性能指标
+     */
+    public void recordPerformanceMetric(String operation, long duration, java.util.Map<String, Object> context) {
+        // 记录执行时间分布
+        Timer.builder("performance.method.duration")
+            .description("Method execution duration")
+            .tag("operation", operation)
+            .tag("module", (String) context.getOrDefault("module", "unknown"))
+            .register(meterRegistry)
+            .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+        
+        // 记录性能指标计数器
+        Counter.builder("performance.method.count")
+            .description("Method execution count")
+            .tag("operation", operation)
+            .tag("module", (String) context.getOrDefault("module", "unknown"))
+            .tag("status", (Boolean) context.getOrDefault("success", true) ? "success" : "error")
+            .register(meterRegistry)
+            .increment();
+    }
+    
+    /**
+     * 记录慢操作指标
+     */
+    public void recordSlowOperation(String operation, String module, long duration, java.util.Map<String, Object> context) {
+        // 记录慢操作计数器
+        Counter.builder("performance.slow.operation.count")
+            .description("Slow operation count")
+            .tag("operation", operation)
+            .tag("module", module)
+            .register(meterRegistry)
+            .increment();
+        
+        // 记录慢操作持续时间
+        Timer.builder("performance.slow.operation.duration")
+            .description("Slow operation duration")
+            .tag("operation", operation)
+            .tag("module", module)
+            .register(meterRegistry)
+            .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+        
+        // 记录慢操作详细信息到Gauge（用于实时监控）
+        meterRegistry.gauge("performance.slow.operation.latest", 
+            Tags.of("operation", operation, "module", module), duration);
+    }
+    
+    /**
+     * 记录方法调用统计
+     */
+    public void recordMethodInvocation(String className, String methodName, boolean success, long duration) {
+        // 方法调用计数
+        Counter.builder("method.invocation.total")
+            .description("Total method invocations")
+            .tag("class", className)
+            .tag("method", methodName)
+            .tag("result", success ? "success" : "error")
+            .register(meterRegistry)
+            .increment();
+        
+        // 方法执行时间
+        Timer.builder("method.execution.time")
+            .description("Method execution time")
+            .tag("class", className)
+            .tag("method", methodName)
+            .register(meterRegistry)
+            .record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+    }
 }
