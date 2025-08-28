@@ -45,7 +45,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <!-- Spring Boot Web -->
@@ -81,12 +80,7 @@
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
 
-        <!-- Micrometer Core -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <optional>true</optional>
-        </dependency>
+
 
         <!-- Test Dependencies -->
         <dependency>

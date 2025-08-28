@@ -92,17 +92,9 @@
             <artifactId>opentelemetry-exporter-logging</artifactId>
         </dependency>
         
-        <!-- Spring Boot Actuator -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
+
         
-        <!-- Micrometer Core -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
+
         
         <!-- Redis -->
         <dependency>

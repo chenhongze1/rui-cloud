@@ -8,205 +8,26 @@
         <groupId>com.rui</groupId>
         <artifactId>rui-server</artifactId>
         <version>1.0.0</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rui-demo-web</artifactId>
-    <packaging>jar</packaging>
     <name>RUI Demo Web</name>
-    <description>RUI框架演示Web应用</description>
+    <description>RUI Demo Web Application</description>
+    <packaging>jar</packaging>
 
     <dependencies>
-        <!-- RUI Common Modules -->
+        <!-- RUI Common Dependencies -->
         <dependency>
             <groupId>com.rui</groupId>
             <artifactId>rui-common-core</artifactId>
-            <version>1.0.0</version>
         </dependency>
-        
         <dependency>
             <groupId>com.rui</groupId>
             <artifactId>rui-common-web</artifactId>
-            <version>1.0.0</version>
         </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-security</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-config</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
         <dependency>
             <groupId>com.rui</groupId>
             <artifactId>rui-common-log</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <!-- 暂时注释掉监控和链路追踪模块，避免启动冲突
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-monitoring</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-tracing</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        -->
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-redis</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-lock</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-ratelimit</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-mybatis</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-mongo</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-mq</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-utils</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-feign</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.rui</groupId>
-            <artifactId>rui-common-idempotent</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <!-- Spring Boot Starters -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-
-        <!-- Database -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- MyBatis Plus -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-        </dependency>
-
-        <!-- Redis -->
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
-        </dependency>
-
-        <!-- MongoDB -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
-
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
-        <!-- Micrometer -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-
-        <!-- OpenTracing -->
-        <dependency>
-            <groupId>io.opentracing</groupId>
-            <artifactId>opentracing-api</artifactId>
-            <version>0.33.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jaegertracing</groupId>
-            <artifactId>jaeger-client</artifactId>
-            <version>1.8.1</version>
-        </dependency>
-
-        <!-- Test Dependencies -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -215,14 +36,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

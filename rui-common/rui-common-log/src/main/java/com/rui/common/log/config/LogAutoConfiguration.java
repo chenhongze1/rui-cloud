@@ -9,6 +9,7 @@ import com.rui.common.log.manager.LogManager;
 import com.rui.common.log.service.LogService;
 import com.rui.common.log.service.impl.LogServiceImpl;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

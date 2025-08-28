@@ -1,0 +1,96 @@
+# Prometheus配置文件
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'rui-cloud'
+    environment: 'development'
+
+# 告警规则文件
+rule_files:
+  # - "alert_rules.yml"
+
+# 告警管理器配置
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# 抓取配置
+scrape_configs:
+  # Prometheus自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # RUI Cloud应用监控
+  - job_name: 'rui-cloud-app'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # MySQL监控（需要mysql_exporter）
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Redis监控（需要redis_exporter）
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node监控（需要node_exporter）
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Nginx监控（需要nginx-prometheus-exporter）
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # JVM监控（通过应用内置的micrometer）
+  - job_name: 'jvm-metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: '/actuator/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # 自定义业务指标
+  - job_name: 'business-metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: '/actuator/custom-metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+# 远程写入配置（可选）
+# remote_write:
+#   - url: "http://remote-storage:9201/write"
+#     queue_config:
+#       max_samples_per_send: 1000
+#       max_shards: 200
+#       capacity: 2500
+
+# 远程读取配置（可选）
+# remote_read:
+#   - url: "http://remote-storage:9201/read"
+#     read_recent: true

@@ -461,56 +461,5 @@ public class ConfigManagementAutoConfiguration {
         }
     }
 
-    /**
-     * 配置管理健康指示器
-     */
-    @Bean
-    @ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
-    @ConditionalOnProperty(prefix = "rui.config.health", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public ConfigManagementHealthIndicator configManagementHealthIndicator(ConfigManager configManager,
-                                                                          ConfigValidator configValidator) {
-        return new ConfigManagementHealthIndicator(configManager, configValidator);
-    }
 
-    /**
-     * 配置管理健康指示器实现
-     */
-    public static class ConfigManagementHealthIndicator implements org.springframework.boot.actuate.health.HealthIndicator {
-        
-        private final ConfigManager configManager;
-        private final ConfigValidator configValidator;
-        
-        public ConfigManagementHealthIndicator(ConfigManager configManager, ConfigValidator configValidator) {
-            this.configManager = configManager;
-            this.configValidator = configValidator;
-        }
-        
-        @Override
-        public org.springframework.boot.actuate.health.Health health() {
-            try {
-                org.springframework.boot.actuate.health.Health.Builder builder = 
-                    org.springframework.boot.actuate.health.Health.up();
-                
-                if (configManager != null && configValidator != null) {
-                    ConfigManager.ValidationResult validationResult = 
-                        configManager.validateAllConfigurations();                    
-                    boolean hasErrors = validationResult.hasErrors();
-                    
-                    if (hasErrors) {
-                        builder.down().withDetail("invalidConfigurations", validationResult.getErrorCount());
-                    }
-                    
-                    builder.withDetail("totalConfigurations", validationResult.getSuccessCount() + validationResult.getErrorCount());
-                    builder.withDetail("validConfigurations", validationResult.getSuccessCount());
-                }
-                
-                return builder.build();
-                
-            } catch (Exception e) {
-                return org.springframework.boot.actuate.health.Health.down()
-                    .withDetail("error", e.getMessage())
-                    .build();
-            }
-        }
-    }
 }

@@ -33,7 +33,6 @@ public class LogManager {
     
     // 不同类型的日志记录器
     private static final Logger AUDIT_LOGGER = LoggerFactory.getLogger("AUDIT");
-    private static final Logger PERFORMANCE_LOGGER = LoggerFactory.getLogger("PERFORMANCE");
     private static final Logger SECURITY_LOGGER = LoggerFactory.getLogger("SECURITY");
     private static final Logger BUSINESS_LOGGER = LoggerFactory.getLogger("BUSINESS");
     
@@ -73,16 +72,7 @@ public class LogManager {
         AUDIT_LOGGER.info(formatStructuredLog(auditData));
     }
     
-    /**
-     * 记录性能日志
-     * @deprecated 性能监控功能已迁移到 rui-common-monitoring 模块，请使用 PerformanceMonitoringService
-     */
-    @Deprecated
-    public void performance(String operation, long duration, Map<String, Object> metrics) {
-        // 性能监控功能已迁移到 rui-common-monitoring 模块
-        // 此方法保留用于向后兼容，建议使用 @PerformanceMonitored 注解
-        log.warn("LogManager.performance() 方法已废弃，请使用 rui-common-monitoring 模块的性能监控功能");
-    }
+
     
     /**
      * 记录安全日志

@@ -74,7 +74,8 @@ public class SecurityAutoConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "rui.security.access-control", name = "enabled", havingValue = "true")
     public FilterRegistrationBean<AccessControlFilter> accessControlFilterRegistration(
-            AccessControlConfig accessControlConfig) {
+            AccessControlConfig accessControlConfig,
+            RedisTemplate<String, Object> redisTemplate) {
         FilterRegistrationBean<AccessControlFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new AccessControlFilter(accessControlConfig, redisTemplate));
         registration.addUrlPatterns("/*");
