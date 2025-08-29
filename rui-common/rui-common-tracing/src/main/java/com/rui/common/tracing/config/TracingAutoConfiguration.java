@@ -80,6 +80,7 @@ public class TracingAutoConfiguration implements WebMvcConfigurer {
      */
     @Bean
     @ConditionalOnClass(name = "org.aspectj.lang.annotation.Aspect")
+    @ConditionalOnProperty(prefix = "rui.tracing.aspect", name = "enabled", havingValue = "false")  // 暂时禁用以隔离问题
     public TracingAspect tracingAspect(TracingManager tracingManager) {
         return new TracingAspect(tracingManager);
     }

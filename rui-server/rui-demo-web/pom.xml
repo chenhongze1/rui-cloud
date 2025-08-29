@@ -29,6 +29,18 @@
             <groupId>com.rui</groupId>
             <artifactId>rui-common-log</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rui</groupId>
+            <artifactId>rui-common-monitoring</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <!-- rui-common-tracing -->
+        <dependency>
+            <groupId>com.rui</groupId>
+            <artifactId>rui-common-tracing</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -13,7 +13,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @since 1.0.0
  */
 @SpringBootApplication(exclude = {
-    DataSourceAutoConfiguration.class
+    DataSourceAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.aop.AopAutoConfiguration.class,  // 临时禁用AOP自动配置以隔离问题
+    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,  // 禁用Spring Security自动配置
+    org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration.class
 })
 public class RuiDemoWebApplication {
 

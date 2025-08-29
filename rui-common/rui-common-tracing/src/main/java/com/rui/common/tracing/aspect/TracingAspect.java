@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
  */
 @Slf4j
 @Aspect
-@Component
+//@Component  // 暂时禁用以隔离问题
 @RequiredArgsConstructor
 @ConditionalOnClass(name = "org.aspectj.lang.annotation.Aspect")
 @ConditionalOnProperty(prefix = "rui.tracing", name = "enabled", havingValue = "true", matchIfMissing = true)

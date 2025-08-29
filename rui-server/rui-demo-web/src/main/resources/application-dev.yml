@@ -5,6 +5,31 @@ server:
 spring:
   application:
     name: rui-demo-web
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rui_cloud?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 10000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
 
 # 禁用不需要的功能
 rui:
@@ -14,8 +39,8 @@ rui:
     enabled: false
   tracing:
     enabled: false
-  log:
-    enabled: false
+  logging:
+    enabled: true
 
 # 禁用Spring Boot Actuator
 management:

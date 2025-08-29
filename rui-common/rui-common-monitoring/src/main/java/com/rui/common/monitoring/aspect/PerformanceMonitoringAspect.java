@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Aspect
-@Component
+//@Component  // 暂时禁用以隔离问题
 @RequiredArgsConstructor
 @ConditionalOnClass(name = "org.aspectj.lang.annotation.Aspect")
 @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "true", matchIfMissing = true)

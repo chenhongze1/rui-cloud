@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Aspect
-@Component
+//@Component  // 暂时禁用以隔离问题
 @RequiredArgsConstructor
 public class IdempotentAspect {
     

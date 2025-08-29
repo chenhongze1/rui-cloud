@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Aspect
 @Order(1)
-@Component
+//@Component  // 暂时禁用以隔离问题
 @RequiredArgsConstructor
 public class DistributedLockAspect {
     

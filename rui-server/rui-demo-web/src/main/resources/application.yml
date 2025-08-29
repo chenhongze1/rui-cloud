@@ -11,3 +11,57 @@ logging:
   level:
     com.rui: debug
     root: info
+
+# 监控配置
+rui:
+  monitoring:
+    enabled: true
+    metrics:
+      enabled: true
+      export-interval: 30s
+    health:
+      enabled: true
+      check-interval: 30s
+    performance:
+      enabled: true
+      method-timing:
+        enabled: true
+        slow-threshold: 500ms
+  
+  # 链路追踪配置
+  tracing:
+    enabled: true
+    service-name: ${spring.application.name}
+    service-version: 1.0.0
+    sampling:
+      rate: 1.0
+      type: ratio
+    export:
+      type: logging
+      endpoint: http://localhost:14268/api/traces
+    resource:
+      attributes:
+        deployment.environment: ${spring.profiles.active}
+        service.namespace: rui-framework
+    ignore-patterns:
+      - "/health"
+      - "/metrics"
+      - "/actuator/**"
+      - "/favicon.ico"
+
+# Spring Boot Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,tracing
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true

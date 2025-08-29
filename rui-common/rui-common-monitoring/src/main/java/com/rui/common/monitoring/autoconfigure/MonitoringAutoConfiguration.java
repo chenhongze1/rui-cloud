@@ -126,7 +126,7 @@ public class MonitoringAutoConfiguration {
      * 性能监控切面
      */
     @Bean
-    @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "rui.monitoring.performance", name = "enabled", havingValue = "false")  // 暂时禁用以隔离问题
     public PerformanceMonitoringAspect performanceMonitoringAspect(MetricsCollector metricsCollector, 
                                                                   MonitoringProperties monitoringProperties) {
         log.info("初始化性能监控切面");
